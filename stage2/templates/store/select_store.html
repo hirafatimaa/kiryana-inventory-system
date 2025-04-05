@@ -11,7 +11,7 @@
             </div>
             <div class="card-body p-4">
                 <p class="card-text mb-4">You have access to multiple stores. Please select a store to continue:</p>
-                <form method="POST" action="{{ url_for('store.select_store') }}">
+                <form method="POST" action="{{ '\/store\/select' }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="list-group">
                         {% for store in stores %}

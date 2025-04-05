@@ -13,7 +13,7 @@
     {% if current_user.is_authenticated %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('store.dashboard') }}">
+            <a class="navbar-brand" href="/">
                 <i class="bi bi-shop me-2"></i>Kiryana Inventory
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,12 +22,12 @@
             <div class="collapse navbar-collapse" id="navbarMain">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/store/dashboard') %}active{% endif %}" href="{{ url_for('store.dashboard') }}">
+                        <a class="nav-link {% if request.path.startswith('/store/dashboard') %}active{% endif %}" href="/">
                             <i class="bi bi-speedometer2 me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/product') %}active{% endif %}" href="{{ url_for('product.products') }}">
+                        <a class="nav-link {% if request.path.startswith('/product') %}active{% endif %}" href="/products">
                             <i class="bi bi-box me-1"></i>Products
                         </a>
                     </li>
@@ -36,12 +36,12 @@
                             <i class="bi bi-clipboard-data me-1"></i>Inventory
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="inventoryDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('inventory.stock_in') }}">Stock In</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('inventory.sales') }}">Sales</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('inventory.removals') }}">Removals</a></li>
+                            <li><a class="dropdown-item" href="/stock_in">Stock In</a></li>
+                            <li><a class="dropdown-item" href="/sales">Sales</a></li>
+                            <li><a class="dropdown-item" href="/removals">Removals</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('inventory.transfers') }}">Transfers</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('inventory.current') }}">Current Inventory</a></li>
+                            <li><a class="dropdown-item" href="/inventory/transfers">Transfers</a></li>
+                            <li><a class="dropdown-item" href="/inventory">Current Inventory</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -49,8 +49,8 @@
                             <i class="bi bi-truck me-1"></i>Suppliers
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="supplierDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('supplier.suppliers') }}">Suppliers</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('supplier.purchase_orders') }}">Purchase Orders</a></li>
+                            <li><a class="dropdown-item" href="/suppliers">Suppliers</a></li>
+                            <li><a class="dropdown-item" href="/purchase_orders">Purchase Orders</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -58,10 +58,10 @@
                             <i class="bi bi-graph-up me-1"></i>Reports
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('report.inventory_movements') }}">Inventory Movements</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('report.sales_report') }}">Sales Report</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('report.low_stock') }}">Low Stock</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('report.valuation') }}">Inventory Valuation</a></li>
+                            <li><a class="dropdown-item" href="/reports/inventory">Inventory Movements</a></li>
+                            <li><a class="dropdown-item" href="/reports/sales">Sales Report</a></li>
+                            <li><a class="dropdown-item" href="/reports/low_stock">Low Stock</a></li>
+                            <li><a class="dropdown-item" href="/reports/valuation">Inventory Valuation</a></li>
                         </ul>
                     </li>
                     {% if current_user.role.name == 'admin' %}
@@ -70,10 +70,10 @@
                             <i class="bi bi-gear me-1"></i>Admin
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('store.manage_stores') }}">Manage Stores</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.manage_users') }}">Manage Users</a></li>
+                            <li><a class="dropdown-item" href="/stores/manage">Manage Stores</a></li>
+                            <li><a class="dropdown-item" href="/users/manage">Manage Users</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('api.api_documentation') }}">API Documentation</a></li>
+                            <li><a class="dropdown-item" href="/api/docs">API Documentation</a></li>
                         </ul>
                     </li>
                     {% endif %}
@@ -86,7 +86,7 @@
                         </span>
                     </div>
                     {% else %}
-                    <a href="{{ url_for('store.select_store') }}" class="btn btn-sm btn-outline-secondary me-3">
+                    <a href="/store/select" class="btn btn-sm btn-outline-secondary me-3">
                         <i class="bi bi-shop me-1"></i>Select Store
                     </a>
                     {% endif %}
@@ -95,9 +95,9 @@
                             <i class="bi bi-person-circle me-1"></i>{{ current_user.username }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">Change Password</a></li>
+                            <li><a class="dropdown-item" href="/auth/change_password">Change Password</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                            <li><a class="dropdown-item" href="/auth/logout">Logout</a></li>
                         </ul>
                     </div>
                 </div>
@@ -131,7 +131,7 @@
 
     <footer class="py-3 mt-auto bg-dark text-white-50">
         <div class="container text-center">
-            <small>&copy; {{ now.year }} Kiryana Inventory System - Multi-Store Edition</small>
+            <small>&copy; 2025 Kiryana Inventory System - Multi-Store Edition</small>
         </div>
     </footer>
 

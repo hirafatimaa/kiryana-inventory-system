@@ -48,6 +48,11 @@ def create_app():
     
     # Enable proxy fix for proper URL generation behind proxies
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    # Add datetime to all templates
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.utcnow()}
+
     
     # Initialize extensions with app
     db.init_app(app)

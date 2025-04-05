@@ -1,0 +1,102 @@
+sqlalchemy.exc.ProgrammingError
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "product" does not exist
+LINE 3: FROM product) AS anon_1
+             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT product.id AS product_id, product.name AS product_name, product.sku AS product_sku, product.description AS product_description, product.unit_price AS product_unit_price, product.current_quantity AS product_current_quantity, product.reorder_level AS product_reorder_level, product.store_id AS product_store_id, product.created_at AS product_created_at, product.updated_at AS product_updated_at 
+FROM product) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Traceback (most recent call last)
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+self.dialect.do_execute(
+^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py", line 945, in do_execute
+cursor.execute(statement, parameters)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The above exception was the direct cause of the following exception:
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1536, in __call__
+return self.wsgi_app(environ, start_response)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\werkzeug\middleware\proxy_fix.py", line 183, in __call__
+return self.app(environ, start_response)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+response = self.handle_exception(e)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+response = self.full_dispatch_request()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+rv = self.handle_user_exception(e)
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+rv = self.dispatch_request()
+     ^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "D:\InventoryTrackerPro\InventoryTrackerPro\views.py", line 18, in index
+product_count = Product.query.count()
+                ^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\query.py", line 3147, in count
+self._legacy_from_self(col).enable_eagerloads(False).scalar()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\query.py", line 2836, in scalar
+ret = self.one()
+      ^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\query.py", line 2809, in one
+return self._iter().one()  # type: ignore
+       ^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\query.py", line 2858, in _iter
+result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                              
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+return self._execute_internal(
+       
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\session.py", line 2251, in _execute_internal
+result: Result[Any] = compile_state_cls.orm_execute_statement(
+                      
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+result = conn.execute(
+         
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1416, in execute
+return meth(
+       
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\sql\elements.py", line 523, in _execute_on_connection
+return connection._execute_clauseelement(
+       
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1638, in _execute_clauseelement
+ret = self._execute_context(
+      
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1843, in _execute_context
+return self._exec_single_context(
+       
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1983, in _exec_single_context
+self._handle_dbapi_exception(
+^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 2352, in _handle_dbapi_exception
+raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+self.dialect.do_execute(
+^
+File "C:\Users\dell\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py", line 945, in do_execute
+cursor.execute(statement, parameters)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "product" does not exist
+LINE 3: FROM product) AS anon_1
+^
+
+[SQL: SELECT count(*) AS count_1
+FROM (SELECT product.id AS product_id, product.name AS product_name, product.sku AS product_sku, product.description AS product_description, product.unit_price AS product_unit_price, product.current_quantity AS product_current_quantity, product.reorder_level AS product_reorder_level, product.store_id AS product_store_id, product.created_at AS product_created_at, product.updated_at AS product_updated_at
+FROM product) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
+To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
+
+You can execute arbitrary Python code in the stack frames and there are some extra helpers available for introspection:
+
+dump() shows all variables in the frame
+dump(obj) dumps all that's known about the object
