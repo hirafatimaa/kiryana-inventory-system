@@ -1,6 +1,7 @@
 import os
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
 
 from flask import Flask, g, redirect, request, session, url_for
 from flask_login import LoginManager, current_user
@@ -9,6 +10,8 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG)
@@ -31,13 +34,17 @@ def create_app():
     app = Flask(__name__)
     
     # Configuration
-    app.config['SECRET_KEY'] = os.environ.get("SESSION_SECRET", "dev-secret-key")
+    app.config['SECRET_KEY'] = os.environ.get("SESSION_SECRET", "inventory_tracking_system_stage2_key")
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         "pool_recycle": 300,
         "pool_pre_ping": True,
     }
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # Additional configuration from environment variables
+    app.config['DEBUG'] = os.environ.get("FLASK_DEBUG", "1") == "1"
+    app.config['FLASK_ENV'] = os.environ.get("FLASK_ENV", "development")
     
     # Enable proxy fix for proper URL generation behind proxies
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -143,15 +150,19 @@ def init_admin_and_roles(app):
     if User.query.count() == 0:
         admin_role = Role.query.filter_by(name='admin').first()
         if admin_role:
-            app.logger.info("Creating default admin user")
+            admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+            admin_email = os.environ.get("ADMIN_EMAIL", "admin@example.com")
+            admin_password = os.environ.get("ADMIN_PASSWORD", "admin_secure_password")
+            
+            app.logger.info(f"Creating default admin user: {admin_username}")
             admin = User(
-                username='admin',
-                email='admin@example.com',
+                username=admin_username,
+                email=admin_email,
                 first_name='Admin',
                 role_id=admin_role.id,
                 is_active=True
             )
-            admin.set_password('admin123')  # Default password, should be changed immediately
+            admin.set_password(admin_password)
             db.session.add(admin)
     
     db.session.commit()

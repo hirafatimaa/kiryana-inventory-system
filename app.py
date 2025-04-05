@@ -1,9 +1,13 @@
 import os
 import logging
+from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -20,6 +24,10 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "inventory_tracking_secret")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
+
+# Configure application settings from environment variables
+app.config['DEBUG'] = os.environ.get("FLASK_DEBUG", "1") == "1"
+app.config['FLASK_ENV'] = os.environ.get("FLASK_ENV", "development")
 
 # Configure database
 # Use PostgreSQL database provided by the environment
@@ -44,12 +52,15 @@ with app.app_context():
     logger.info("Database tables created")
 
     # Create default store if it doesn't exist (for Phase 1)
-    default_store = Store.query.filter_by(name="Main Store").first()
+    default_store_name = os.environ.get("DEFAULT_STORE_NAME", "Main Store")
+    default_store_location = os.environ.get("DEFAULT_STORE_LOCATION", "Primary Location")
+    
+    default_store = Store.query.filter_by(name=default_store_name).first()
     if not default_store:
-        default_store = Store(name="Main Store", location="Default Location")
+        default_store = Store(name=default_store_name, location=default_store_location)
         db.session.add(default_store)
         db.session.commit()
-        logger.info("Default store created")
+        logger.info(f"Default store created: {default_store_name} at {default_store_location}")
 
     # Import views and register blueprints
     from views import register_views
