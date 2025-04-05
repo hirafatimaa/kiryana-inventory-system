@@ -84,6 +84,20 @@ def register_report_commands():
     movement_parser.add_argument('--type', choices=['stock_in', 'sale', 'removal'], help='Filter by movement type')
     movement_parser.add_argument('--days', type=int, default=30, help='Number of days to show (default: 30)')
 
+# Store Management Commands
+def register_store_commands():
+    # List stores
+    list_stores_parser = subparsers.add_parser('list-stores', help='List all stores')
+    
+    # Add store
+    add_store_parser = subparsers.add_parser('add-store', help='Add a new store')
+    add_store_parser.add_argument('--name', required=True, help='Store name')
+    add_store_parser.add_argument('--location', required=True, help='Store location')
+    
+    # Show store details
+    show_store_parser = subparsers.add_parser('show-store', help='Show store details')
+    show_store_parser.add_argument('--id', type=int, required=True, help='Store ID')
+
 # Command Handlers
 def handle_list_products(args):
     """List all products with their current inventory"""
@@ -465,6 +479,115 @@ def handle_movements(args):
         print(f"Total Sales: {total_sales}")
         print(f"Total Removals: {total_removals}")
         print(f"Net Change: {total_stock_in - total_sales - total_removals}")
+
+# Store command handlers
+def handle_list_stores(args):
+    """List all stores"""
+    with setup_cli():
+        stores = Store.query.order_by(Store.name).all()
+        
+        if not stores:
+            print("No stores found.")
+            return
+        
+        # Format the output
+        headers = ["ID", "Name", "Location", "Products", "Created At"]
+        rows = []
+        
+        for s in stores:
+            # Count products associated with this store
+            product_count = Product.query.filter_by(store_id=s.id).count()
+            
+            rows.append([
+                s.id,
+                s.name,
+                s.location,
+                product_count,
+                s.created_at.strftime("%Y-%m-%d")
+            ])
+        
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+        print(f"Total: {len(stores)} stores")
+
+def handle_add_store(args):
+    """Add a new store"""
+    with setup_cli():
+        # Check if store with same name already exists
+        existing = Store.query.filter_by(name=args.name).first()
+        if existing:
+            print(f"Error: Store with name '{args.name}' already exists.")
+            return
+        
+        # Create new store
+        new_store = Store(
+            name=args.name,
+            location=args.location
+        )
+        
+        db.session.add(new_store)
+        db.session.commit()
+        
+        print(f"Store '{args.name}' added successfully with ID: {new_store.id}")
+
+def handle_show_store(args):
+    """Show detailed store information"""
+    with setup_cli():
+        store = Store.query.get(args.id)
+        
+        if not store:
+            print(f"Store with ID {args.id} not found.")
+            return
+            
+        print("\nStore Details:")
+        print("=" * 50)
+        print(f"ID:             {store.id}")
+        print(f"Name:           {store.name}")
+        print(f"Location:       {store.location}")
+        print(f"Created At:     {store.created_at}")
+        print(f"Updated At:     {store.updated_at}")
+        print("=" * 50)
+        
+        # Count and show summary of products
+        products = Product.query.filter_by(store_id=store.id).all()
+        product_count = len(products)
+        print(f"\nProducts: {product_count}")
+        
+        if products:
+            # Calculate inventory value
+            total_value = sum(p.current_quantity * p.unit_price for p in products)
+            print(f"Total Inventory Value: {total_value:.2f}")
+            
+            # Show low stock count
+            low_stock = sum(1 for p in products if p.current_quantity <= p.reorder_level)
+            print(f"Low Stock Items: {low_stock}")
+            
+            # Show recent inventory movements
+            movements = InventoryMovement.query.filter_by(store_id=store.id).order_by(
+                InventoryMovement.movement_date.desc()).limit(5).all()
+                
+            if movements:
+                print("\nRecent Movements:")
+                headers = ["Date", "Product", "Type", "Quantity"]
+                rows = []
+                
+                # Get product lookup dictionary
+                product_dict = {p.id: p.name for p in products}
+                
+                for m in movements:
+                    movement_type = "Stock In" if m.movement_type == "stock_in" else \
+                                   "Sale" if m.movement_type == "sale" else \
+                                   "Removal"
+                                   
+                    product_name = product_dict.get(m.product_id, f"Unknown ({m.product_id})")
+                    
+                    rows.append([
+                        m.movement_date.strftime("%Y-%m-%d"),
+                        product_name,
+                        movement_type,
+                        m.quantity
+                    ])
+                    
+                print(tabulate(rows, headers=headers, tablefmt="simple"))
         
 def main():
     """Main entry point for the CLI"""
@@ -472,6 +595,7 @@ def main():
     register_product_commands()
     register_inventory_commands()
     register_report_commands()
+    register_store_commands()
     
     # Parse arguments
     args = parser.parse_args()
@@ -490,7 +614,10 @@ def main():
         'sale': handle_sale,
         'removal': handle_removal,
         'inventory': handle_inventory,
-        'movements': handle_movements
+        'movements': handle_movements,
+        'list-stores': handle_list_stores,
+        'add-store': handle_add_store,
+        'show-store': handle_show_store
     }
     
     handler = command_handlers.get(args.command)
