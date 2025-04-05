@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-dark mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-secondary">Total Products</h6>
+                        <h2 class="card-text">{{ product_count }}</h2>
+                    </div>
+                    <div class="rounded-circle bg-primary bg-opacity-25 p-3">
+                        <i class="fas fa-boxes fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <small>
+                    <a href="{{ url_for('products') }}" class="text-decoration-none">
+                        View all products <i class="fas fa-arrow-right"></i>
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-secondary">Low Stock Items</h6>
+                        <h2 class="card-text">{{ low_stock_count }}</h2>
+                    </div>
+                    <div class="rounded-circle bg-warning bg-opacity-25 p-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <small class="text-warning">
+                    <a href="{{ url_for('inventory') }}" class="text-decoration-none text-warning">
+                        Check inventory <i class="fas fa-arrow-right"></i>
+                    </a>
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-secondary">Quick Actions</h6>
+                        <p class="card-text">Record transactions</p>
+                    </div>
+                    <div class="rounded-circle bg-info bg-opacity-25 p-3">
+                        <i class="fas fa-bolt fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('stock_in') }}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-plus-circle"></i> Stock In
+                    </a>
+                    <a href="{{ url_for('sales') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-shopping-cart"></i> Sale
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity and Low Stock -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-dark h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_movements %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th>Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in recent_movements %}
+                                <tr>
+                                    <td>{{ movement.movement_date.strftime('%d-%b-%Y') }}</td>
+                                    <td>{{ movement.product.name }}</td>
+                                    <td>
+                                        {% if movement.movement_type == 'stock_in' %}
+                                            <span class="badge bg-success">Stock In</span>
+                                        {% elif movement.movement_type == 'sale' %}
+                                            <span class="badge bg-primary">Sale</span>
+                                        {% elif movement.movement_type == 'removal' %}
+                                            <span class="badge bg-danger">Removal</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ movement.quantity }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-inbox fa-3x mb-3 text-secondary"></i>
+                        <p>No recent activities recorded yet.</p>
+                        <a href="{{ url_for('stock_in') }}" class="btn btn-primary">Record First Transaction</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('reports') }}" class="text-decoration-none">View all activity <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-dark h-100">
+            <div class="card-header bg-warning bg-opacity-25 text-warning">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if low_stock_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>Current Qty</th>
+                                    <th>Reorder Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in low_stock_products %}
+                                <tr>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.sku }}</td>
+                                    <td>
+                                        {% if product.current_quantity == 0 %}
+                                            <span class="badge bg-danger">Out of Stock</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ product.current_quantity }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ product.reorder_level }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                        <p>All products are well stocked!</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                {% if low_stock_products %}
+                    <a href="{{ url_for('stock_in') }}" class="btn btn-warning btn-sm">Restock Items</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

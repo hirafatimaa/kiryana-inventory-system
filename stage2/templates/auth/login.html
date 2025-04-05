@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Kiryana Inventory System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0"><i class="bi bi-shop me-2"></i>Kiryana Inventory System</h4>
+                <p class="text-white-50 mb-0">Multi-Store Enterprise Edition</p>
+            </div>
+            <div class="card-body p-4">
+                <h5 class="card-title text-center mb-4">Sign In</h5>
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="username" class="form-label">{{ form.username.label }}</label>
+                        {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                        {% for error in form.username.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">{{ form.password.label }}</label>
+                        {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                        {% for error in form.password.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.remember_me(class="form-check-input", id="remember_me") }}
+                        <label class="form-check-label" for="remember_me">{{ form.remember_me.label }}</label>
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer bg-transparent text-center py-3">
+                <div class="text-muted">Default admin login:</div>
+                <div class="small text-muted">Username: admin</div>
+                <div class="small text-muted">Password: admin123</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

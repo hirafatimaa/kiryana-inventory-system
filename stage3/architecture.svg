@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#21252b" rx="5" ry="5"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial" font-size="24" fill="#ffffff" text-anchor="middle">Kiryana Inventory System - Stage 3 Microservices Architecture</text>
+  
+  <!-- Clients -->
+  <rect x="300" y="70" width="200" height="50" fill="#2d333b" rx="5" ry="5" stroke="#3b4252" stroke-width="2"/>
+  <text x="400" y="100" font-family="Arial" font-size="16" fill="#ffffff" text-anchor="middle">Client Applications</text>
+  
+  <!-- API Gateway -->
+  <rect x="300" y="150" width="200" height="50" fill="#4c566a" rx="5" ry="5" stroke="#5e81ac" stroke-width="2"/>
+  <text x="400" y="180" font-family="Arial" font-size="16" fill="#ffffff" text-anchor="middle">API Gateway</text>
+  
+  <!-- Services -->
+  <rect x="100" y="250" width="120" height="50" fill="#5e81ac" rx="5" ry="5" stroke="#81a1c1" stroke-width="2"/>
+  <text x="160" y="280" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Auth Service</text>
+  
+  <rect x="240" y="250" width="120" height="50" fill="#5e81ac" rx="5" ry="5" stroke="#81a1c1" stroke-width="2"/>
+  <text x="300" y="280" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Product Service</text>
+  
+  <rect x="380" y="250" width="120" height="50" fill="#5e81ac" rx="5" ry="5" stroke="#81a1c1" stroke-width="2"/>
+  <text x="440" y="280" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Inventory Service</text>
+  
+  <rect x="520" y="250" width="120" height="50" fill="#5e81ac" rx="5" ry="5" stroke="#81a1c1" stroke-width="2"/>
+  <text x="580" y="280" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Store Service</text>
+  
+  <rect x="660" y="250" width="120" height="50" fill="#5e81ac" rx="5" ry="5" stroke="#81a1c1" stroke-width="2"/>
+  <text x="720" y="280" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Reporting Service</text>
+  
+  <!-- Message Queue -->
+  <rect x="100" y="350" width="680" height="50" fill="#4c566a" rx="5" ry="5" stroke="#5e81ac" stroke-width="2"/>
+  <text x="440" y="380" font-family="Arial" font-size="16" fill="#ffffff" text-anchor="middle">Message Queue / Event Bus</text>
+  
+  <!-- Databases -->
+  <rect x="100" y="450" width="120" height="50" fill="#3b4252" rx="5" ry="5" stroke="#4c566a" stroke-width="2"/>
+  <text x="160" y="480" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Auth DB</text>
+  
+  <rect x="240" y="450" width="120" height="50" fill="#3b4252" rx="5" ry="5" stroke="#4c566a" stroke-width="2"/>
+  <text x="300" y="480" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Product DB</text>
+  
+  <rect x="380" y="450" width="120" height="50" fill="#3b4252" rx="5" ry="5" stroke="#4c566a" stroke-width="2"/>
+  <text x="440" y="480" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Inventory DB</text>
+  
+  <rect x="520" y="450" width="120" height="50" fill="#3b4252" rx="5" ry="5" stroke="#4c566a" stroke-width="2"/>
+  <text x="580" y="480" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Store DB</text>
+  
+  <rect x="660" y="450" width="120" height="50" fill="#3b4252" rx="5" ry="5" stroke="#4c566a" stroke-width="2"/>
+  <text x="720" y="480" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Analytics DB</text>
+  
+  <!-- Connections -->
+  <!-- Client to API Gateway -->
+  <line x1="400" y1="120" x2="400" y2="150" stroke="#88c0d0" stroke-width="2"/>
+  
+  <!-- API Gateway to Services -->
+  <line x1="400" y1="200" x2="160" y2="250" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="400" y1="200" x2="300" y2="250" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="400" y1="200" x2="440" y2="250" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="400" y1="200" x2="580" y2="250" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="400" y1="200" x2="720" y2="250" stroke="#88c0d0" stroke-width="2"/>
+  
+  <!-- Services to Message Queue -->
+  <line x1="160" y1="300" x2="160" y2="350" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="300" y1="300" x2="300" y2="350" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="440" y1="300" x2="440" y2="350" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="580" y1="300" x2="580" y2="350" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="720" y1="300" x2="720" y2="350" stroke="#88c0d0" stroke-width="2"/>
+  
+  <!-- Message Queue to Services (bidirectional) -->
+  <line x1="165" y1="347" x2="165" y2="303" stroke="#88c0d0" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="305" y1="347" x2="305" y2="303" stroke="#88c0d0" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="445" y1="347" x2="445" y2="303" stroke="#88c0d0" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="585" y1="347" x2="585" y2="303" stroke="#88c0d0" stroke-width="1" stroke-dasharray="5,5"/>
+  <line x1="725" y1="347" x2="725" y2="303" stroke="#88c0d0" stroke-width="1" stroke-dasharray="5,5"/>
+  
+  <!-- Services to Databases -->
+  <line x1="160" y1="300" x2="160" y2="450" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="300" y1="300" x2="300" y2="450" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="440" y1="300" x2="440" y2="450" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="580" y1="300" x2="580" y2="450" stroke="#88c0d0" stroke-width="2"/>
+  <line x1="720" y1="300" x2="720" y2="450" stroke="#88c0d0" stroke-width="2"/>
+  
+  <!-- Legend -->
+  <rect x="50" y="530" width="700" height="50" fill="#2e3440" rx="5" ry="5"/>
+  <text x="400" y="560" font-family="Arial" font-size="14" fill="#ffffff" text-anchor="middle">Scalable Architecture for Supporting Thousands of Stores with High Availability and Fault Tolerance</text>
+</svg>

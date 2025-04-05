@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Reports{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="mb-4">
+            <i class="fas fa-chart-line me-2"></i>Inventory Reports
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="mb-0">Filter Report</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="row g-3">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="col-md-3">
+                        {{ form.product_id.label(class="form-label") }}
+                        {{ form.product_id(class="form-select") }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        {{ form.movement_type.label(class="form-label") }}
+                        {{ form.movement_type(class="form-select") }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        {{ form.start_date.label(class="form-label") }}
+                        {{ form.start_date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="col-md-3">
+                        {{ form.end_date.label(class="form-label") }}
+                        {{ form.end_date(class="form-control", type="date") }}
+                    </div>
+                    
+                    <div class="col-12 text-end">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success bg-opacity-25 text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Stock In</h6>
+                        <h2 class="card-text">{{ total_stock_in }}</h2>
+                    </div>
+                    <div class="rounded-circle bg-success p-3">
+                        <i class="fas fa-arrow-circle-down fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-primary bg-opacity-25 text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Sales</h6>
+                        <h2 class="card-text">{{ total_sales }}</h2>
+                    </div>
+                    <div class="rounded-circle bg-primary p-3">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger bg-opacity-25 text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Removals</h6>
+                        <h2 class="card-text">{{ total_removals }}</h2>
+                    </div>
+                    <div class="rounded-circle bg-danger p-3">
+                        <i class="fas fa-trash-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Table -->
+<div class="card bg-dark">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Inventory Movements</h5>
+        <button class="btn btn-sm btn-outline-secondary" onclick="printReport()">
+            <i class="fas fa-print me-1"></i>Print
+        </button>
+    </div>
+    <div class="card-body">
+        {% if movements %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Product</th>
+                            <th>Movement Type</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total Value</th>
+                            <th>Reference</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movement in movements %}
+                        <tr>
+                            <td>{{ movement.movement_date.strftime('%d-%b-%Y') }}</td>
+                            <td>{{ movement.product.name }}</td>
+                            <td>
+                                {% if movement.movement_type == 'stock_in' %}
+                                    <span class="badge bg-success">Stock In</span>
+                                {% elif movement.movement_type == 'sale' %}
+                                    <span class="badge bg-primary">Sale</span>
+                                {% elif movement.movement_type == 'removal' %}
+                                    <span class="badge bg-danger">Removal</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ movement.quantity }}</td>
+                            <td>{{ "%.2f"|format(movement.unit_price) }}</td>
+                            <td>{{ "%.2f"|format(movement.quantity * movement.unit_price) }}</td>
+                            <td>{{ movement.reference }}</td>
+                            <td>{{ movement.notes|truncate(30) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center p-4">
+                <i class="fas fa-search fa-3x mb-3 text-secondary"></i>
+                <p>No inventory movements found matching the filter criteria.</p>
+                <p>Try changing your filter settings or add some transactions.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function printReport() {
+        window.print();
+    }
+    
+    // Simple sorting for report table
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('report-table');
+        if (!table) return;
+        
+        const headers = table.querySelectorAll('th');
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const index = Array.from(headers).indexOf(header);
+                sortTable(index);
+            });
+            header.style.cursor = 'pointer';
+        });
+        
+        function sortTable(colIndex) {
+            let rows = Array.from(table.querySelectorAll('tbody tr'));
+            let sortOrder = headers[colIndex].getAttribute('data-sort') === 'asc' ? -1 : 1;
+            
+            rows.sort((a, b) => {
+                let aValue = a.cells[colIndex].textContent.trim();
+                let bValue = b.cells[colIndex].textContent.trim();
+                
+                // If number, convert to float
+                if (!isNaN(aValue) && !isNaN(bValue)) {
+                    return sortOrder * (parseFloat(aValue) - parseFloat(bValue));
+                }
+                
+                // Otherwise sort as string
+                return sortOrder * aValue.localeCompare(bValue);
+            });
+            
+            // Update sort direction
+            headers.forEach(h => h.removeAttribute('data-sort'));
+            headers[colIndex].setAttribute('data-sort', sortOrder === 1 ? 'asc' : 'desc');
+            
+            // Re-append rows in sorted order
+            const tbody = table.querySelector('tbody');
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    });
+</script>
+{% endblock %}
