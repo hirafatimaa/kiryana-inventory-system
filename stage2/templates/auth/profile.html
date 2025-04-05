@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-person-circle me-2"></i> My Profile</h1>
+    <p class="lead">View and manage your account information</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('auth.edit_profile') }}" class="btn btn-primary">
+      <i class="bi bi-pencil-square me-1"></i> Edit Profile
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Username</label>
+              <div class="form-control">{{ current_user.username }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Email</label>
+              <div class="form-control">{{ current_user.email }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">First Name</label>
+              <div class="form-control">{{ current_user.first_name or 'Not specified' }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Last Name</label>
+              <div class="form-control">{{ current_user.last_name or 'Not specified' }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Role</label>
+              <div class="form-control">
+                {% if current_user.role.name == 'admin' %}
+                  <span class="badge bg-danger">Administrator</span>
+                {% elif current_user.role.name == 'manager' %}
+                  <span class="badge bg-primary">Store Manager</span>
+                {% elif current_user.role.name == 'staff' %}
+                  <span class="badge bg-info">Staff</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ current_user.role.name }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Account Status</label>
+              <div class="form-control">
+                {% if current_user.is_active %}
+                  <span class="badge bg-success">Active</span>
+                {% else %}
+                  <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-shop me-2"></i> Store Access</h5>
+      </div>
+      <div class="card-body">
+        {% if current_user.role.name == 'admin' %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> As an administrator, you have access to all stores.
+          </div>
+        {% elif current_user.store_permissions %}
+          <div class="list-group">
+            {% for perm in current_user.store_permissions %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-0">{{ perm.store.name }}</h6>
+                  <small class="text-muted">{{ perm.store.code }}</small>
+                </div>
+                <div>
+                  {% if perm.permission_level == 'read' %}
+                    <span class="badge bg-info">Read Only</span>
+                  {% elif perm.permission_level == 'write' %}
+                    <span class="badge bg-success">Read & Write</span>
+                  {% elif perm.permission_level == 'admin' %}
+                    <span class="badge bg-warning">Store Admin</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-warning mb-0">
+            <i class="bi bi-exclamation-triangle me-2"></i> You do not have access to any stores. Contact an administrator.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

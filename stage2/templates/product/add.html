@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Product - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-plus-circle me-2"></i> Add New Product</h1>
+    <p class="lead">Create a new product for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('product.list_products', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Products
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('product.add_product', store_id=store.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="col-md-4">
+              <label for="category" class="form-label">Category</label>
+              <input type="text" class="form-control" id="category" name="category" list="categoryOptions">
+              <datalist id="categoryOptions">
+                {% for cat in categories %}
+                  <option value="{{ cat }}">
+                {% endfor %}
+              </datalist>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="sku" class="form-label">SKU</label>
+              <input type="text" class="form-control" id="sku" name="sku">
+            </div>
+            <div class="col-md-4">
+              <label for="barcode" class="form-label">Barcode</label>
+              <input type="text" class="form-control" id="barcode" name="barcode">
+            </div>
+            <div class="col-md-4">
+              <label for="location_in_store" class="form-label">Location in Store</label>
+              <input type="text" class="form-control" id="location_in_store" name="location_in_store">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="unit_price" class="form-label">Selling Price <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="unit_price" name="unit_price" min="0" step="0.01" required>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="cost_price" class="form-label">Cost Price</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="cost_price" name="cost_price" min="0" step="0.01">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="reorder_level" class="form-label">Reorder Level <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="reorder_level" name="reorder_level" min="0" value="10" required>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="image_url" class="form-label">Image URL</label>
+            <input type="url" class="form-control" id="image_url" name="image_url" placeholder="https://example.com/image.jpg">
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-1"></i> Create Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-info-circle me-2"></i> Product Information</h5>
+        <p class="card-text">
+          Adding a new product will:
+        </p>
+        <ul>
+          <li>Create the product with zero initial inventory</li>
+          <li>Allow you to track stock movements</li>
+          <li>Enable sales and inventory management</li>
+        </ul>
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Note:</strong> After creating a product, you'll need to record an initial "Stock In" to add inventory.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

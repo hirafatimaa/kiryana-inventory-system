@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5">
+      <i class="bi bi-box me-2"></i> {{ product.name }}
+    </h1>
+    <p class="lead">{{ product.description }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('product.list_products', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Products
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <!-- Product Information -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i> Product Information</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">SKU</label>
+              <div class="form-control">{{ product.sku }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Barcode</label>
+              <div class="form-control">{{ product.barcode or 'N/A' }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Category</label>
+              <div class="form-control">{{ product.category or 'N/A' }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label text-muted">Location in Store</label>
+              <div class="form-control">{{ product.location_in_store or 'N/A' }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label text-muted">Selling Price</label>
+              <div class="form-control">{{ "${:.2f}".format(product.unit_price) }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label text-muted">Cost Price</label>
+              <div class="form-control">{{ "${:.2f}".format(product.cost_price) if product.cost_price else 'N/A' }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label text-muted">Profit Margin</label>
+              <div class="form-control">
+                {% if product.cost_price and product.cost_price > 0 %}
+                  {{ "{:.0f}%".format((product.unit_price - product.cost_price) / product.cost_price * 100) }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Inventory Status -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header {% if product.is_low_stock() %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
+        <h5 class="card-title mb-0">
+          {% if product.is_low_stock() %}
+            <i class="bi bi-exclamation-triangle me-2"></i>
+          {% else %}
+            <i class="bi bi-check-circle me-2"></i>
+          {% endif %}
+          Inventory Status
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label text-muted">Current Stock</label>
+              <div class="form-control">
+                {% if product.current_quantity <= 0 %}
+                  <span class="badge bg-danger">{{ product.current_quantity }}</span>
+                {% elif product.current_quantity <= product.reorder_level %}
+                  <span class="badge bg-warning">{{ product.current_quantity }}</span>
+                {% else %}
+                  <span class="badge bg-success">{{ product.current_quantity }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label text-muted">Reorder Level</label>
+              <div class="form-control">{{ product.reorder_level }}</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="mb-3">
+              <label class="form-label text-muted">Stock Value</label>
+              <div class="form-control">{{ "${:.2f}".format(product.get_stock_value()) }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mt-3">
+          <div class="col">
+            <div class="d-grid gap-2 d-md-flex justify-content-center">
+              <a href="{{ url_for('inventory.stock_in', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-graph-up-arrow me-1"></i> Record Stock In
+              </a>
+              <a href="{{ url_for('inventory.sales', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-success">
+                <i class="bi bi-cart-check me-1"></i> Record Sale
+              </a>
+              <a href="{{ url_for('inventory.removals', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-1"></i> Record Removal
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Movements -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-info text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i> Recent Movements</h5>
+      </div>
+      <div class="card-body">
+        {% if recent_movements %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                  <th>Reference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for movement in recent_movements %}
+                  <tr>
+                    <td>{{ movement.movement_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                      {% if movement.movement_type == 'stock_in' %}
+                        <span class="badge bg-success">Stock In</span>
+                      {% elif movement.movement_type == 'sale' %}
+                        <span class="badge bg-primary">Sale</span>
+                      {% elif movement.movement_type == 'removal' %}
+                        <span class="badge bg-danger">Removal</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ movement.quantity }}</td>
+                    <td>{{ "${:.2f}".format(movement.unit_price) }}</td>
+                    <td>{{ "${:.2f}".format(movement.get_total_value()) }}</td>
+                    <td>{{ movement.reference or 'N/A' }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="text-end mt-3">
+            <a href="{{ url_for('inventory.movements', store_id=store.id, product_id=product.id) }}" class="btn btn-sm btn-outline-info">
+              View All Movements
+            </a>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No recent inventory movements for this product.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <!-- Product Image -->
+    {% if product.image_url %}
+      <div class="card border-0 shadow-sm mb-4">
+        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+      </div>
+    {% endif %}
+    
+    <!-- Actions Card -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-gear me-2"></i> Product Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('product.edit_product', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Edit Product
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Supplier Information -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-truck me-2"></i> Suppliers</h5>
+      </div>
+      <div class="card-body">
+        {% if suppliers %}
+          <div class="list-group list-group-flush">
+            {% for sp in suppliers %}
+              <div class="list-group-item bg-transparent px-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=sp.supplier.id) }}">
+                    {{ sp.supplier.name }}
+                  </a>
+                  <span class="badge bg-success">{{ "${:.2f}".format(sp.cost_price) if sp.cost_price else 'N/A' }}</span>
+                </div>
+                {% if sp.supplier_sku %}
+                  <small class="text-muted">SKU: {{ sp.supplier_sku }}</small>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No suppliers linked to this product.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

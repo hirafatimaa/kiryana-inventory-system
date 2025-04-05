@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Stock In - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-graph-up-arrow me-2"></i> Record Stock In</h1>
+    <p class="lead">Add new inventory to {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('inventory.movements', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Movements
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('inventory.stock_in', store_id=store.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="mb-3">
+            <label for="product_id" class="form-label">Product <span class="text-danger">*</span></label>
+            <select class="form-select" id="product_id" name="product_id" required {% if selected_product %}disabled{% endif %}>
+              <option value="">Select a product...</option>
+              {% for product in products %}
+                <option value="{{ product.id }}" {% if selected_product and product.id == selected_product.id %}selected{% endif %}>
+                  {{ product.name }} - {{ product.sku }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if selected_product %}
+              <input type="hidden" name="product_id" value="{{ selected_product.id }}">
+            {% endif %}
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+            <div class="col-md-6">
+              <label for="unit_price" class="form-label">Unit Cost <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="unit_price" name="unit_price" min="0" step="0.01" 
+                       value="{% if selected_product %}{{ selected_product.cost_price }}{% endif %}" required>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="reference" class="form-label">Reference (Invoice #)</label>
+              <input type="text" class="form-control" id="reference" name="reference">
+            </div>
+            <div class="col-md-6">
+              <label for="movement_date" class="form-label">Date</label>
+              <input type="date" class="form-control" id="movement_date" name="movement_date" value="{{ today_date }}">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-1"></i> Record Stock In
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    {% if selected_product %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i> Product Information</h5>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">{{ selected_product.name }}</h5>
+          <p class="text-muted">
+            {% if selected_product.sku %}SKU: {{ selected_product.sku }}{% endif %}
+            {% if selected_product.category %} - Category: {{ selected_product.category }}{% endif %}
+          </p>
+          
+          <div class="row mb-3">
+            <div class="col-6">
+              <div class="text-muted">Current Stock:</div>
+              <div class="fs-5">
+                {% if selected_product.current_quantity <= 0 %}
+                  <span class="badge bg-danger">{{ selected_product.current_quantity }}</span>
+                {% elif selected_product.current_quantity <= selected_product.reorder_level %}
+                  <span class="badge bg-warning">{{ selected_product.current_quantity }}</span>
+                {% else %}
+                  <span class="badge bg-success">{{ selected_product.current_quantity }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted">Selling Price:</div>
+              <div class="fs-5">${{ "%.2f"|format(selected_product.unit_price) }}</div>
+            </div>
+          </div>
+          
+          <a href="{{ url_for('product.view_product', store_id=store.id, product_id=selected_product.id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-box me-1"></i> View Product Details
+          </a>
+        </div>
+      </div>
+    {% endif %}
+    
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-lightbulb me-2"></i> About Stock In</h5>
+        <p class="card-text">
+          Use this form to record new inventory received from suppliers or any other inventory additions.
+        </p>
+        <ul>
+          <li>The current inventory level will be increased by the quantity entered</li>
+          <li>A record of this transaction will be created in the movement history</li>
+          <li>The reference field can be used to record invoice or purchase order numbers</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

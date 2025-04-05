@@ -1,370 +1,219 @@
-from datetime import datetime, timedelta
-import functools
-import json
-import secrets
-
-from flask import Blueprint, jsonify, request, render_template, abort, current_app
+from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 
 from app import db
-from models import User, Store, Product, InventoryMovement, StorePermission
+from models import Store, Product, InventoryMovement, Supplier
 
+# Create blueprint
 bp = Blueprint('api', __name__, url_prefix='/api')
 
-# API Authentication
-class APIToken(db.Model):
-    """API Token for authenticating API requests"""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    token = db.Column(db.String(64), unique=True, nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    expires_at = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationship
-    user = db.relationship('User', backref='api_tokens')
-    
-    def is_expired(self):
-        """Check if token is expired"""
-        if not self.expires_at:
-            return False
-        return datetime.utcnow() > self.expires_at
 
-def token_required(f):
-    """Decorator for API routes that require token authentication"""
-    @functools.wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get('X-API-Token')
-        if not token:
-            return jsonify({'error': 'API token is missing!'}), 401
-        
-        api_token = APIToken.query.filter_by(token=token).first()
-        if not api_token or api_token.is_expired():
-            return jsonify({'error': 'Invalid or expired API token!'}), 401
-        
-        # Add user to request context for permission checks
-        request.api_user = api_token.user
-        return f(*args, **kwargs)
-    return decorated
-
-# API Documentation
-@bp.route('/docs')
+@bp.route('/store/<int:store_id>/products')
 @login_required
-def api_documentation():
-    """API documentation page"""
-    # This would be a more comprehensive page in a real app
-    return render_template('api/documentation.html', title='API Documentation')
+def get_products(store_id):
+    """Get all products for a store"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        return jsonify({"error": "Access denied"}), 403
+    
+    # Get products
+    products = Product.query.filter_by(store_id=store_id).all()
+    
+    # Convert to JSON
+    products_json = [{
+        'id': p.id,
+        'name': p.name,
+        'sku': p.sku,
+        'barcode': p.barcode,
+        'category': p.category,
+        'unit_price': p.unit_price,
+        'current_quantity': p.current_quantity,
+        'reorder_level': p.reorder_level,
+        'is_low_stock': p.is_low_stock()
+    } for p in products]
+    
+    return jsonify(products_json)
 
-# API Token Management
-@bp.route('/tokens', methods=['GET'])
+
+@bp.route('/store/<int:store_id>/product/<int:product_id>')
 @login_required
-def list_tokens():
-    """List API tokens for the current user"""
-    tokens = APIToken.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{
-        'id': token.id,
-        'name': token.name,
-        'created_at': token.created_at.isoformat(),
-        'expires_at': token.expires_at.isoformat() if token.expires_at else None
-    } for token in tokens])
+def get_product(store_id, product_id):
+    """Get a specific product"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        return jsonify({"error": "Access denied"}), 403
+    
+    # Get product
+    product = Product.query.get_or_404(product_id)
+    
+    # Verify product belongs to this store
+    if product.store_id != store_id:
+        return jsonify({"error": "Product not found in this store"}), 404
+    
+    # Convert to JSON
+    product_json = {
+        'id': product.id,
+        'name': product.name,
+        'sku': product.sku,
+        'barcode': product.barcode,
+        'description': product.description,
+        'category': product.category,
+        'unit_price': product.unit_price,
+        'cost_price': product.cost_price,
+        'current_quantity': product.current_quantity,
+        'reorder_level': product.reorder_level,
+        'location_in_store': product.location_in_store,
+        'is_low_stock': product.is_low_stock(),
+        'store_id': product.store_id
+    }
+    
+    return jsonify(product_json)
 
-@bp.route('/tokens', methods=['POST'])
+
+@bp.route('/store/<int:store_id>/product/<int:product_id>/movements')
 @login_required
-def create_token():
-    """Create a new API token"""
-    data = request.get_json()
-    if not data or 'name' not in data:
-        return jsonify({'error': 'Name is required!'}), 400
+def get_product_movements(store_id, product_id):
+    """Get movements for a specific product"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        return jsonify({"error": "Access denied"}), 403
     
-    # Generate a token with 64 chars
-    token_value = secrets.token_hex(32)
+    # Get product
+    product = Product.query.get_or_404(product_id)
     
-    # Default expiration is 30 days
-    expires_at = None
-    if 'expires_days' in data and data['expires_days']:
-        expires_at = datetime.utcnow() + timedelta(days=data['expires_days'])
+    # Verify product belongs to this store
+    if product.store_id != store_id:
+        return jsonify({"error": "Product not found in this store"}), 404
     
-    api_token = APIToken(
-        user_id=current_user.id,
-        token=token_value,
-        name=data['name'],
-        expires_at=expires_at
-    )
+    # Get movements
+    movements = InventoryMovement.query.filter_by(
+        product_id=product_id,
+        store_id=store_id
+    ).order_by(InventoryMovement.movement_date.desc()).all()
     
-    db.session.add(api_token)
-    db.session.commit()
+    # Convert to JSON
+    movements_json = [{
+        'id': m.id,
+        'movement_type': m.movement_type,
+        'quantity': m.quantity,
+        'unit_price': m.unit_price,
+        'total_value': m.get_total_value(),
+        'reference': m.reference,
+        'notes': m.notes,
+        'movement_date': m.movement_date.isoformat(),
+        'created_at': m.created_at.isoformat()
+    } for m in movements]
     
-    return jsonify({
-        'id': api_token.id,
-        'token': token_value,  # Only returned once when created
-        'name': api_token.name,
-        'expires_at': api_token.expires_at.isoformat() if api_token.expires_at else None
-    })
+    return jsonify(movements_json)
 
-@bp.route('/tokens/<int:token_id>', methods=['DELETE'])
+
+@bp.route('/store/<int:store_id>/low-stock')
 @login_required
-def delete_token(token_id):
-    """Delete an API token"""
-    token = APIToken.query.get_or_404(token_id)
+def get_low_stock(store_id):
+    """Get low stock products"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        return jsonify({"error": "Access denied"}), 403
     
-    # Check ownership
-    if token.user_id != current_user.id and current_user.role.name != 'admin':
-        abort(403)
+    # Get low stock products
+    products = Product.query.filter(
+        Product.store_id == store_id,
+        Product.current_quantity <= Product.reorder_level
+    ).all()
     
-    db.session.delete(token)
-    db.session.commit()
+    # Convert to JSON
+    products_json = [{
+        'id': p.id,
+        'name': p.name,
+        'sku': p.sku,
+        'category': p.category,
+        'current_quantity': p.current_quantity,
+        'reorder_level': p.reorder_level,
+        'unit_price': p.unit_price
+    } for p in products]
     
-    return jsonify({'message': 'Token deleted successfully'})
+    return jsonify(products_json)
 
-# API Endpoints
-@bp.route('/stores', methods=['GET'])
-@token_required
-def get_stores():
-    """Get list of stores the user has access to"""
-    user = request.api_user
+
+@bp.route('/store/<int:store_id>/suppliers')
+@login_required
+def get_suppliers(store_id):
+    """Get all suppliers"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        return jsonify({"error": "Access denied"}), 403
     
-    if user.role.name == 'admin':
+    # Get suppliers
+    suppliers = Supplier.query.filter_by(is_active=True).all()
+    
+    # Convert to JSON
+    suppliers_json = [{
+        'id': s.id,
+        'name': s.name,
+        'contact_name': s.contact_name,
+        'email': s.email,
+        'phone': s.phone
+    } for s in suppliers]
+    
+    return jsonify(suppliers_json)
+
+
+@bp.route('/store/<int:store_id>/recent-movements')
+@login_required
+def get_recent_movements(store_id):
+    """Get recent inventory movements"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        return jsonify({"error": "Access denied"}), 403
+    
+    # Get limit parameter
+    limit = request.args.get('limit', 10, type=int)
+    
+    # Get recent movements
+    movements = InventoryMovement.query.filter_by(
+        store_id=store_id
+    ).order_by(InventoryMovement.movement_date.desc()).limit(limit).all()
+    
+    # Convert to JSON with product info
+    movements_json = [{
+        'id': m.id,
+        'product_id': m.product_id,
+        'product_name': m.product.name,
+        'movement_type': m.movement_type,
+        'quantity': m.quantity,
+        'unit_price': m.unit_price,
+        'total_value': m.get_total_value(),
+        'reference': m.reference,
+        'movement_date': m.movement_date.isoformat()
+    } for m in movements]
+    
+    return jsonify(movements_json)
+
+
+@bp.route('/user/stores')
+@login_required
+def get_user_stores():
+    """Get stores accessible to the current user"""
+    if current_user.role.name == 'admin':
         # Admin can see all stores
         stores = Store.query.filter_by(is_active=True).all()
     else:
-        # Other users can only see stores they have permissions for
-        store_permissions = StorePermission.query.filter_by(user_id=user.id).all()
-        store_ids = [p.store_id for p in store_permissions]
-        stores = Store.query.filter(Store.id.in_(store_ids), Store.is_active == True).all()
+        # Other users can only see stores they have access to
+        store_ids = [perm.store_id for perm in current_user.store_permissions]
+        stores = Store.query.filter(
+            Store.id.in_(store_ids),
+            Store.is_active == True
+        ).all()
     
-    return jsonify([{
-        'id': store.id,
-        'name': store.name,
-        'code': store.code,
-        'location': store.location
-    } for store in stores])
-
-@bp.route('/stores/<int:store_id>/products', methods=['GET'])
-@token_required
-def get_store_products(store_id):
-    """Get products for a specific store"""
-    user = request.api_user
+    # Convert to JSON
+    stores_json = [{
+        'id': s.id,
+        'name': s.name,
+        'code': s.code,
+        'location': s.location,
+        'address': s.address,
+        'phone': s.phone,
+        'email': s.email
+    } for s in stores]
     
-    # Check store access
-    if not user.has_store_access(store_id):
-        return jsonify({'error': 'Access denied to this store'}), 403
-    
-    # Get products
-    products = Product.query.filter_by(store_id=store_id).all()
-    
-    return jsonify([{
-        'id': product.id,
-        'sku': product.sku,
-        'name': product.name,
-        'description': product.description,
-        'unit_price': product.unit_price,
-        'current_quantity': product.current_quantity,
-        'reorder_level': product.reorder_level,
-        'category': product.category,
-        'cost_price': product.cost_price,
-        'barcode': product.barcode,
-        'is_low_stock': product.is_low_stock(),
-        'total_value': product.current_quantity * product.unit_price
-    } for product in products])
-
-@bp.route('/stores/<int:store_id>/inventory', methods=['GET'])
-@token_required
-def get_store_inventory(store_id):
-    """Get current inventory for a specific store"""
-    user = request.api_user
-    
-    # Check store access
-    if not user.has_store_access(store_id):
-        return jsonify({'error': 'Access denied to this store'}), 403
-    
-    # Get products
-    products = Product.query.filter_by(store_id=store_id).all()
-    
-    # Get inventory summary
-    low_stock_count = sum(1 for p in products if p.is_low_stock())
-    out_of_stock_count = sum(1 for p in products if p.current_quantity <= 0)
-    total_value = sum(p.current_quantity * p.unit_price for p in products)
-    
-    return jsonify({
-        'store_id': store_id,
-        'product_count': len(products),
-        'low_stock_count': low_stock_count,
-        'out_of_stock_count': out_of_stock_count,
-        'total_value': total_value,
-        'products': [{
-            'id': product.id,
-            'name': product.name,
-            'sku': product.sku,
-            'current_quantity': product.current_quantity,
-            'unit_price': product.unit_price,
-            'value': product.current_quantity * product.unit_price,
-            'status': 'Low Stock' if product.is_low_stock() else 'Out of Stock' if product.current_quantity <= 0 else 'In Stock'
-        } for product in products]
-    })
-
-@bp.route('/stores/<int:store_id>/movements', methods=['GET'])
-@token_required
-def get_store_movements(store_id):
-    """Get inventory movements for a specific store"""
-    user = request.api_user
-    
-    # Check store access
-    if not user.has_store_access(store_id):
-        return jsonify({'error': 'Access denied to this store'}), 403
-    
-    # Parse query parameters
-    movement_type = request.args.get('type')
-    days = request.args.get('days', default=30, type=int)
-    product_id = request.args.get('product_id', type=int)
-    
-    # Base query
-    query = InventoryMovement.query.filter_by(store_id=store_id)
-    
-    # Apply filters
-    if movement_type:
-        query = query.filter_by(movement_type=movement_type)
-    
-    if product_id:
-        query = query.filter_by(product_id=product_id)
-    
-    # Date filter
-    if days:
-        start_date = datetime.utcnow() - timedelta(days=days)
-        query = query.filter(InventoryMovement.movement_date >= start_date)
-    
-    # Execute query
-    movements = query.order_by(InventoryMovement.movement_date.desc()).all()
-    
-    return jsonify([{
-        'id': movement.id,
-        'product_id': movement.product_id,
-        'product_name': movement.product.name,
-        'movement_type': movement.movement_type,
-        'quantity': movement.quantity,
-        'unit_price': movement.unit_price,
-        'total_value': movement.quantity * movement.unit_price,
-        'reference': movement.reference,
-        'notes': movement.notes,
-        'movement_date': movement.movement_date.isoformat()
-    } for movement in movements])
-
-@bp.route('/stores/<int:store_id>/stock-in', methods=['POST'])
-@token_required
-def create_stock_in(store_id):
-    """Record stock in for a specific store"""
-    user = request.api_user
-    
-    # Check store access with write permission
-    store_permission = StorePermission.query.filter_by(
-        user_id=user.id,
-        store_id=store_id
-    ).first()
-    
-    if not store_permission or store_permission.permission_level == 'read':
-        return jsonify({'error': 'Write access denied to this store'}), 403
-    
-    # Validate request data
-    data = request.get_json()
-    if not data or 'product_id' not in data or 'quantity' not in data or 'unit_price' not in data:
-        return jsonify({'error': 'Missing required fields'}), 400
-    
-    # Check product exists and belongs to this store
-    product = Product.query.get(data['product_id'])
-    if not product or product.store_id != store_id:
-        return jsonify({'error': 'Invalid product ID'}), 400
-    
-    # Create stock in movement
-    movement = InventoryMovement(
-        product_id=data['product_id'],
-        store_id=store_id,
-        movement_type='stock_in',
-        quantity=data['quantity'],
-        unit_price=data['unit_price'],
-        reference=data.get('reference'),
-        notes=data.get('notes'),
-        created_by=user.id,
-        movement_date=datetime.utcnow()
-    )
-    db.session.add(movement)
-    
-    # Update product quantity
-    product.current_quantity += data['quantity']
-    
-    db.session.commit()
-    
-    return jsonify({
-        'id': movement.id,
-        'product_id': movement.product_id,
-        'product_name': product.name,
-        'quantity': movement.quantity,
-        'unit_price': movement.unit_price,
-        'total_value': movement.quantity * movement.unit_price,
-        'new_stock_level': product.current_quantity,
-        'message': f"Recorded stock in of {movement.quantity} units for '{product.name}'"
-    })
-
-@bp.route('/stores/<int:store_id>/sale', methods=['POST'])
-@token_required
-def create_sale(store_id):
-    """Record sale for a specific store"""
-    user = request.api_user
-    
-    # Check store access with write permission
-    store_permission = StorePermission.query.filter_by(
-        user_id=user.id,
-        store_id=store_id
-    ).first()
-    
-    if not store_permission or store_permission.permission_level == 'read':
-        return jsonify({'error': 'Write access denied to this store'}), 403
-    
-    # Validate request data
-    data = request.get_json()
-    if not data or 'product_id' not in data or 'quantity' not in data:
-        return jsonify({'error': 'Missing required fields'}), 400
-    
-    # Check product exists and belongs to this store
-    product = Product.query.get(data['product_id'])
-    if not product or product.store_id != store_id:
-        return jsonify({'error': 'Invalid product ID'}), 400
-    
-    # Check sufficient quantity
-    if product.current_quantity < data['quantity']:
-        return jsonify({
-            'error': 'Insufficient quantity',
-            'available': product.current_quantity,
-            'requested': data['quantity']
-        }), 400
-    
-    # Use product's unit price if not provided
-    unit_price = data.get('unit_price', product.unit_price)
-    
-    # Create sale movement
-    movement = InventoryMovement(
-        product_id=data['product_id'],
-        store_id=store_id,
-        movement_type='sale',
-        quantity=data['quantity'],
-        unit_price=unit_price,
-        reference=data.get('reference'),
-        notes=data.get('notes'),
-        created_by=user.id,
-        movement_date=datetime.utcnow()
-    )
-    db.session.add(movement)
-    
-    # Update product quantity
-    product.current_quantity -= data['quantity']
-    
-    db.session.commit()
-    
-    return jsonify({
-        'id': movement.id,
-        'product_id': movement.product_id,
-        'product_name': product.name,
-        'quantity': movement.quantity,
-        'unit_price': movement.unit_price,
-        'total_value': movement.quantity * movement.unit_price,
-        'new_stock_level': product.current_quantity,
-        'message': f"Recorded sale of {movement.quantity} units of '{product.name}'"
-    })
+    return jsonify(stores_json)

@@ -1,195 +1,263 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
 from app import db
-from forms import StoreForm
-from models import Store, StorePermission
+from models import Store, StorePermission, User, Product, InventoryMovement
 
-# Create the blueprint
+# Create blueprint
 bp = Blueprint('store', __name__, url_prefix='/store')
-
-
-@bp.route('/dashboard/<int:store_id>')
-@login_required
-def dashboard(store_id):
-    """Dashboard showing store metrics and stats."""
-    # Check store access permission
-    if not current_user.has_store_access(store_id):
-        flash('You do not have access to this store', 'danger')
-        return redirect(url_for('store.select_store'))
-    
-    # Get store data
-    store = Store.query.get_or_404(store_id)
-    
-    # Get dashboard stats
-    from models import Product, InventoryMovement
-    import datetime
-    
-    # Basic inventory stats
-    product_count = Product.query.filter_by(store_id=store_id).count()
-    
-    # Get low stock products
-    low_stock_products = Product.query.filter_by(store_id=store_id).filter(
-        Product.current_quantity <= Product.reorder_level
-    ).all()
-    
-    # Get total inventory value
-    inventory_value = db.session.query(
-        db.func.sum(Product.current_quantity * Product.unit_price)
-    ).filter_by(store_id=store_id).scalar() or 0
-    
-    # Get recent movements (last 7 days)
-    last_week = datetime.datetime.now() - datetime.timedelta(days=7)
-    recent_movements = InventoryMovement.query.filter_by(
-        store_id=store_id
-    ).filter(
-        InventoryMovement.movement_date >= last_week
-    ).order_by(
-        InventoryMovement.movement_date.desc()
-    ).limit(10).all()
-    
-    # Sales summary for current month
-    start_of_month = datetime.datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    sales_this_month = InventoryMovement.query.filter_by(
-        store_id=store_id,
-        movement_type='sale'
-    ).filter(
-        InventoryMovement.movement_date >= start_of_month
-    ).all()
-    
-    sales_value = sum(m.quantity * m.unit_price for m in sales_this_month)
-    sales_count = len(sales_this_month)
-    
-    # Purchases summary for current month
-    purchases_this_month = InventoryMovement.query.filter_by(
-        store_id=store_id,
-        movement_type='stock_in'
-    ).filter(
-        InventoryMovement.movement_date >= start_of_month
-    ).all()
-    
-    purchases_value = sum(m.quantity * m.unit_price for m in purchases_this_month)
-    purchases_count = len(purchases_this_month)
-    
-    return render_template('store/dashboard.html',
-                          title=f'Dashboard - {store.name}',
-                          store=store,
-                          product_count=product_count,
-                          low_stock_products=low_stock_products,
-                          inventory_value=inventory_value,
-                          recent_movements=recent_movements,
-                          sales_value=sales_value,
-                          sales_count=sales_count,
-                          purchases_value=purchases_value,
-                          purchases_count=purchases_count)
 
 
 @bp.route('/select')
 @login_required
 def select_store():
-    """Store selection page."""
-    # Admin users can see all stores
+    """Store selection page"""
+    # Admin can see all stores, other users only see permitted ones
     if current_user.role.name == 'admin':
         stores = Store.query.filter_by(is_active=True).all()
     else:
-        # Other users can only see stores they have permissions for
-        store_permissions = StorePermission.query.filter_by(user_id=current_user.id).all()
-        store_ids = [p.store_id for p in store_permissions]
-        stores = Store.query.filter(Store.id.in_(store_ids), Store.is_active == True).all()
+        # Get store IDs from user's permissions
+        store_ids = [perm.store_id for perm in current_user.store_permissions]
+        stores = Store.query.filter(Store.id.in_(store_ids), Store.is_active==True).all()
     
-    # If only one store, redirect to that store's dashboard
-    if len(stores) == 1:
-        return redirect(url_for('store.dashboard', store_id=stores[0].id))
-    
-    return render_template('store/select_store.html', title='Select Store', stores=stores)
+    return render_template('store/select_store.html', stores=stores)
 
 
-@bp.route('/manage')
+@bp.route('/<int:store_id>/dashboard')
 @login_required
-def manage_stores():
-    """Store management page (admin only)."""
-    # Only admins can manage stores
-    if current_user.role.name != 'admin':
-        flash('You do not have permission to manage stores', 'danger')
+def dashboard(store_id):
+    """Store dashboard with key metrics"""
+    # Verify user has access to this store
+    if not current_user.has_store_access(store_id):
+        flash('You do not have access to this store.', 'danger')
         return redirect(url_for('store.select_store'))
     
-    stores = Store.query.all()
-    return render_template('store/manage_stores.html', title='Manage Stores', stores=stores)
+    # Get the store
+    store = Store.query.get_or_404(store_id)
+    
+    # Get low stock products
+    low_stock_products = store.products.filter(
+        Product.current_quantity <= Product.reorder_level
+    ).order_by(Product.current_quantity).limit(5).all()
+    
+    # Get recent inventory movements
+    recent_movements = store.inventory_movements.order_by(
+        InventoryMovement.movement_date.desc()
+    ).limit(5).all()
+    
+    # Get product count
+    product_count = store.products.count()
+    
+    # Get low stock count
+    low_stock_count = store.products.filter(
+        Product.current_quantity <= Product.reorder_level
+    ).count()
+    
+    return render_template('store/dashboard.html',
+                          store=store,
+                          product_count=product_count,
+                          low_stock_count=low_stock_count,
+                          low_stock_products=low_stock_products,
+                          recent_movements=recent_movements)
+
+
+@bp.route('/list')
+@login_required
+def list_stores():
+    """List all stores the user has access to"""
+    # Admin can see all stores, other users only see permitted ones
+    if current_user.role.name == 'admin':
+        stores = Store.query.all()
+    else:
+        # Get store IDs from user's permissions
+        store_ids = [perm.store_id for perm in current_user.store_permissions]
+        stores = Store.query.filter(Store.id.in_(store_ids)).all()
+    
+    return render_template('store/list.html', stores=stores)
 
 
 @bp.route('/add', methods=['GET', 'POST'])
 @login_required
 def add_store():
-    """Add new store page (admin only)."""
-    # Only admins can add stores
+    """Add a new store"""
+    # Only admin can add stores
     if current_user.role.name != 'admin':
-        flash('You do not have permission to add stores', 'danger')
+        flash('Only administrators can add stores.', 'danger')
         return redirect(url_for('store.select_store'))
     
-    form = StoreForm()
-    
-    if form.validate_on_submit():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        code = request.form.get('code')
+        location = request.form.get('location')
+        address = request.form.get('address')
+        phone = request.form.get('phone')
+        email = request.form.get('email')
+        
+        # Validate required fields
+        if not name or not code:
+            flash('Name and code are required fields.', 'danger')
+            return redirect(url_for('store.add_store'))
+        
+        # Check if code already exists
+        existing_store = Store.query.filter_by(code=code).first()
+        if existing_store:
+            flash(f'A store with code {code} already exists.', 'danger')
+            return redirect(url_for('store.add_store'))
+        
+        # Create new store
         store = Store(
-            name=form.name.data,
-            code=form.code.data,
-            location=form.location.data,
-            address=form.address.data,
-            phone=form.phone.data,
-            email=form.email.data,
+            name=name,
+            code=code,
+            location=location,
+            address=address,
+            phone=phone,
+            email=email,
             is_active=True
         )
         
         db.session.add(store)
         db.session.commit()
         
-        flash(f'Store {form.name.data} has been added!', 'success')
-        return redirect(url_for('store.manage_stores'))
+        flash(f'Store {name} has been created successfully.', 'success')
+        return redirect(url_for('store.list_stores'))
     
-    return render_template('store/add_store.html', title='Add New Store', form=form)
+    return render_template('store/add.html')
 
 
 @bp.route('/<int:store_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_store(store_id):
-    """Edit store page (admin only)."""
-    # Only admins can edit stores
+    """Edit an existing store"""
+    # Only admin can edit stores
     if current_user.role.name != 'admin':
-        flash('You do not have permission to edit stores', 'danger')
+        flash('Only administrators can edit stores.', 'danger')
         return redirect(url_for('store.select_store'))
     
     store = Store.query.get_or_404(store_id)
-    form = StoreForm(obj=store)
     
-    if form.validate_on_submit():
-        store.name = form.name.data
-        store.code = form.code.data
-        store.location = form.location.data
-        store.address = form.address.data
-        store.phone = form.phone.data
-        store.email = form.email.data
+    if request.method == 'POST':
+        name = request.form.get('name')
+        code = request.form.get('code')
+        location = request.form.get('location')
+        address = request.form.get('address')
+        phone = request.form.get('phone')
+        email = request.form.get('email')
+        is_active = 'is_active' in request.form
+        
+        # Validate required fields
+        if not name or not code:
+            flash('Name and code are required fields.', 'danger')
+            return redirect(url_for('store.edit_store', store_id=store_id))
+        
+        # Check if code already exists and it's not this store
+        existing_store = Store.query.filter_by(code=code).first()
+        if existing_store and existing_store.id != store_id:
+            flash(f'A store with code {code} already exists.', 'danger')
+            return redirect(url_for('store.edit_store', store_id=store_id))
+        
+        # Update store
+        store.name = name
+        store.code = code
+        store.location = location
+        store.address = address
+        store.phone = phone
+        store.email = email
+        store.is_active = is_active
         
         db.session.commit()
         
-        flash(f'Store {store.name} has been updated!', 'success')
-        return redirect(url_for('store.manage_stores'))
+        flash(f'Store {name} has been updated successfully.', 'success')
+        return redirect(url_for('store.list_stores'))
     
-    return render_template('store/edit_store.html', title='Edit Store', form=form, store=store)
+    return render_template('store/edit.html', store=store)
 
 
-@bp.route('/<int:store_id>/toggle', methods=['POST'])
+@bp.route('/<int:store_id>/permissions')
 @login_required
-def toggle_store_active(store_id):
-    """Toggle store active status (admin only)."""
-    # Only admins can toggle store status
+def store_permissions(store_id):
+    """Manage user permissions for a store"""
+    # Only admin can manage permissions
     if current_user.role.name != 'admin':
-        flash('You do not have permission to change store status', 'danger')
+        flash('Only administrators can manage store permissions.', 'danger')
         return redirect(url_for('store.select_store'))
     
     store = Store.query.get_or_404(store_id)
-    store.is_active = not store.is_active
+    users = User.query.all()
+    
+    # Get existing permissions
+    permissions = StorePermission.query.filter_by(store_id=store_id).all()
+    
+    return render_template('store/permissions.html', 
+                          store=store, 
+                          users=users, 
+                          permissions=permissions)
+
+
+@bp.route('/<int:store_id>/permissions/add', methods=['POST'])
+@login_required
+def add_permission(store_id):
+    """Add a user permission to a store"""
+    # Only admin can manage permissions
+    if current_user.role.name != 'admin':
+        flash('Only administrators can manage store permissions.', 'danger')
+        return redirect(url_for('store.select_store'))
+    
+    user_id = request.form.get('user_id')
+    permission_level = request.form.get('permission_level')
+    
+    # Validate inputs
+    if not user_id or not permission_level:
+        flash('User and permission level are required.', 'danger')
+        return redirect(url_for('store.store_permissions', store_id=store_id))
+    
+    # Check if user exists
+    user = User.query.get(user_id)
+    if not user:
+        flash('Selected user does not exist.', 'danger')
+        return redirect(url_for('store.store_permissions', store_id=store_id))
+    
+    # Check if permission already exists
+    existing_perm = StorePermission.query.filter_by(
+        user_id=user_id, store_id=store_id
+    ).first()
+    
+    if existing_perm:
+        # Update existing permission
+        existing_perm.permission_level = permission_level
+        flash(f'Permission updated for {user.username}.', 'success')
+    else:
+        # Create new permission
+        permission = StorePermission(
+            user_id=user_id,
+            store_id=store_id,
+            permission_level=permission_level
+        )
+        db.session.add(permission)
+        flash(f'Permission added for {user.username}.', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('store.store_permissions', store_id=store_id))
+
+
+@bp.route('/<int:store_id>/permissions/<int:permission_id>/delete')
+@login_required
+def delete_permission(store_id, permission_id):
+    """Remove a user permission from a store"""
+    # Only admin can manage permissions
+    if current_user.role.name != 'admin':
+        flash('Only administrators can manage store permissions.', 'danger')
+        return redirect(url_for('store.select_store'))
+    
+    permission = StorePermission.query.get_or_404(permission_id)
+    
+    # Ensure permission belongs to this store
+    if permission.store_id != store_id:
+        flash('Invalid permission ID.', 'danger')
+        return redirect(url_for('store.store_permissions', store_id=store_id))
+    
+    user = User.query.get(permission.user_id)
+    db.session.delete(permission)
     db.session.commit()
     
-    status = 'activated' if store.is_active else 'deactivated'
-    flash(f'Store {store.name} has been {status}', 'success')
-    
-    return redirect(url_for('store.manage_stores'))
+    flash(f'Permission removed for {user.username}.', 'success')
+    return redirect(url_for('store.store_permissions', store_id=store_id))

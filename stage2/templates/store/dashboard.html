@@ -1,168 +1,246 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}{{ store.name }} Dashboard - Kiryana Inventory System{% endblock %}
+{% block title %}{{ store.name }} Dashboard - Kiryana Inventory{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3"><i class="bi bi-speedometer2 me-2"></i>{{ store.name }} Dashboard</h1>
-    <span class="badge bg-secondary p-2">
-        <i class="bi bi-calendar3 me-1"></i>{{ now.strftime('%B %d, %Y') }}
-    </span>
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-speedometer2 me-2"></i> {{ store.name }} Dashboard</h1>
+    <p class="lead">Overview of store inventory and recent activities</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.select_store') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Change Store
+    </a>
+  </div>
+</div>
+
+<!-- Store Info Card -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <h5 class="card-title">Store Information</h5>
+        <p class="mb-1"><strong>Code:</strong> {{ store.code }}</p>
+        {% if store.location %}
+          <p class="mb-1"><strong>Location:</strong> {{ store.location }}</p>
+        {% endif %}
+        {% if store.address %}
+          <p class="mb-1"><strong>Address:</strong> {{ store.address }}</p>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        {% if store.phone %}
+          <p class="mb-1"><strong>Phone:</strong> {{ store.phone }}</p>
+        {% endif %}
+        {% if store.email %}
+          <p class="mb-1"><strong>Email:</strong> {{ store.email }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Stats Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="text-secondary">Total Products</div>
-                        <h3 class="mb-0">{{ product_count }}</h3>
-                    </div>
-                    <div class="bg-primary bg-opacity-25 p-2 rounded">
-                        <i class="bi bi-box text-primary fs-4"></i>
-                    </div>
-                </div>
-            </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Products</h6>
+            <h3 class="mb-0">{{ product_count }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-box text-primary fs-3"></i>
+          </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="text-secondary">Inventory Value</div>
-                        <h3 class="mb-0">${{ "%.2f"|format(total_value) }}</h3>
-                    </div>
-                    <div class="bg-success bg-opacity-25 p-2 rounded">
-                        <i class="bi bi-cash-stack text-success fs-4"></i>
-                    </div>
-                </div>
-            </div>
+        <div class="mt-3">
+          <a href="{{ url_for('product.list_products', store_id=store.id) }}" class="btn btn-sm btn-outline-primary">View Products</a>
         </div>
+      </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="text-secondary">Low Stock Items</div>
-                        <h3 class="mb-0">{{ low_stock_count }}</h3>
-                    </div>
-                    <div class="bg-warning bg-opacity-25 p-2 rounded">
-                        <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
-                    </div>
-                </div>
-            </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Low Stock Items</h6>
+            <h3 class="mb-0">{{ low_stock_count }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-exclamation-triangle text-warning fs-3"></i>
+          </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body p-3">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="text-secondary">Out of Stock</div>
-                        <h3 class="mb-0">{{ out_of_stock_count }}</h3>
-                    </div>
-                    <div class="bg-danger bg-opacity-25 p-2 rounded">
-                        <i class="bi bi-x-circle text-danger fs-4"></i>
-                    </div>
-                </div>
-            </div>
+        <div class="mt-3">
+          <a href="{{ url_for('product.low_stock', store_id=store.id) }}" class="btn btn-sm btn-outline-warning">View Low Stock</a>
         </div>
+      </div>
     </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Recent Activity</h6>
+            <h3 class="mb-0">{{ recent_movements|length }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-activity text-success fs-3"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <a href="{{ url_for('inventory.movements', store_id=store.id) }}" class="btn btn-sm btn-outline-success">View All Activity</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Today's Summary -->
+<!-- Quick Actions -->
 <div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-transparent">
-                <h5 class="card-title mb-0"><i class="bi bi-cart3 me-2"></i>Today's Sales</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="display-4 me-3">${{ "%.2f"|format(sales_value_today) }}</div>
-                    <div>
-                        <div class="text-secondary mb-1">Sales Value</div>
-                        <a href="{{ url_for('report.sales_report') }}" class="btn btn-sm btn-outline-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
+  <div class="col">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-lightning-charge me-2"></i> Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="row row-cols-1 row-cols-md-3 g-3">
+          <div class="col">
+            <a href="{{ url_for('inventory.stock_in', store_id=store.id) }}" class="btn btn-outline-primary d-block py-3">
+              <i class="bi bi-graph-up-arrow fs-4 d-block mb-2"></i>
+              Record Stock In
+            </a>
+          </div>
+          <div class="col">
+            <a href="{{ url_for('inventory.sales', store_id=store.id) }}" class="btn btn-outline-success d-block py-3">
+              <i class="bi bi-cart-check fs-4 d-block mb-2"></i>
+              Record Sale
+            </a>
+          </div>
+          <div class="col">
+            <a href="{{ url_for('product.add_product', store_id=store.id) }}" class="btn btn-outline-info d-block py-3">
+              <i class="bi bi-plus-circle fs-4 d-block mb-2"></i>
+              Add New Product
+            </a>
+          </div>
         </div>
+      </div>
     </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-transparent">
-                <h5 class="card-title mb-0"><i class="bi bi-box-arrow-in-down me-2"></i>Today's Stock In</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="display-4 me-3">${{ "%.2f"|format(stock_in_value_today) }}</div>
-                    <div>
-                        <div class="text-secondary mb-1">Stock-In Value</div>
-                        <a href="{{ url_for('report.inventory_movements') }}?movement_type=stock_in" class="btn btn-sm btn-outline-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 
-<!-- Recent Activity -->
-<div class="row">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="bi bi-activity me-2"></i>Recent Inventory Movements</h5>
-                <a href="{{ url_for('report.inventory_movements') }}" class="btn btn-sm btn-outline-primary">View All</a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Product</th>
-                                <th>Quantity</th>
-                                <th>Value</th>
-                                <th>Reference</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for movement in recent_movements %}
-                            <tr>
-                                <td>{{ movement.movement_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td>
-                                    {% if movement.movement_type == 'stock_in' %}
-                                    <span class="badge bg-success">Stock In</span>
-                                    {% elif movement.movement_type == 'sale' %}
-                                    <span class="badge bg-primary">Sale</span>
-                                    {% elif movement.movement_type == 'removal' %}
-                                    <span class="badge bg-danger">Removal</span>
-                                    {% elif movement.movement_type == 'transfer_in' %}
-                                    <span class="badge bg-info">Transfer In</span>
-                                    {% elif movement.movement_type == 'transfer_out' %}
-                                    <span class="badge bg-warning">Transfer Out</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ movement.product.name }}</td>
-                                <td>{{ movement.quantity }}</td>
-                                <td>${{ "%.2f"|format(movement.quantity * movement.unit_price) }}</td>
-                                <td>{{ movement.reference or '-' }}</td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="6" class="text-center py-3">No recent inventory movements</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="row mb-4">
+  <!-- Low Stock Products -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-exclamation-triangle me-2"></i> Low Stock Products</h5>
+      </div>
+      <div class="card-body">
+        {% if low_stock_products %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>In Stock</th>
+                  <th>Reorder At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for product in low_stock_products %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}">
+                        {{ product.name }}
+                      </a>
+                    </td>
+                    <td>
+                      {% if product.current_quantity <= 0 %}
+                        <span class="badge bg-danger">{{ product.current_quantity }}</span>
+                      {% else %}
+                        <span class="badge bg-warning">{{ product.current_quantity }}</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ product.reorder_level }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="text-end">
+            <a href="{{ url_for('product.low_stock', store_id=store.id) }}" class="btn btn-sm btn-outline-warning">
+              View All Low Stock
+            </a>
+          </div>
+        {% else %}
+          <div class="alert alert-success mb-0">
+            <i class="bi bi-check-circle me-2"></i> All products are above reorder levels.
+          </div>
+        {% endif %}
+      </div>
     </div>
+  </div>
+  
+  <!-- Recent Inventory Movements -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-info text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-clock-history me-2"></i> Recent Inventory Movements</h5>
+      </div>
+      <div class="card-body">
+        {% if recent_movements %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for movement in recent_movements %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=movement.product_id) }}">
+                        {{ movement.product.name }}
+                      </a>
+                    </td>
+                    <td>
+                      {% if movement.movement_type == 'stock_in' %}
+                        <span class="badge bg-success">Stock In</span>
+                      {% elif movement.movement_type == 'sale' %}
+                        <span class="badge bg-primary">Sale</span>
+                      {% elif movement.movement_type == 'removal' %}
+                        <span class="badge bg-danger">Removal</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ movement.quantity }}</td>
+                    <td>{{ movement.movement_date.strftime('%Y-%m-%d') }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="text-end">
+            <a href="{{ url_for('inventory.movements', store_id=store.id) }}" class="btn btn-sm btn-outline-info">
+              View All Movements
+            </a>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No recent inventory movements found.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

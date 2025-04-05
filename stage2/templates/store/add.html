@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Store - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-plus-circle me-2"></i> Add New Store</h1>
+    <p class="lead">Create a new store in the inventory system</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.list_stores') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Stores
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('store.add_store') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="name" class="form-label">Store Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="code" class="form-label">Store Code <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="code" name="code" required>
+              <div class="form-text">Unique identifier for the store (e.g., NY001, LA002)</div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="location" name="location">
+            <div class="form-text">City or area where the store is located</div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone" name="phone">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email">
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-1"></i> Create Store
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-info-circle me-2"></i> Store Information</h5>
+        <p class="card-text">
+          Creating a new store will:
+        </p>
+        <ul>
+          <li>Add it to the store selection list</li>
+          <li>Allow products and inventory to be managed separately</li>
+          <li>Require permissions to be set for users to access it</li>
+        </ul>
+        <p class="card-text">
+          <strong>Note:</strong> By default, only administrators will have access to the new store.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Stores - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-building me-2"></i> Manage Stores</h1>
+    <p class="lead">View and manage all stores in the system</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.add_store') }}" class="btn btn-success">
+      <i class="bi bi-plus-circle me-1"></i> Add New Store
+    </a>
+  </div>
+</div>
+
+{% if stores %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Code</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for store in stores %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('store.dashboard', store_id=store.id) }}">
+                    {{ store.name }}
+                  </a>
+                </td>
+                <td>{{ store.code }}</td>
+                <td>{{ store.location }}</td>
+                <td>
+                  {% if store.is_active %}
+                    <span class="badge bg-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-danger">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{{ url_for('store.dashboard', store_id=store.id) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-speedometer2"></i>
+                    </a>
+                    <a href="{{ url_for('store.edit_store', store_id=store.id) }}" class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('store.store_permissions', store_id=store.id) }}" class="btn btn-sm btn-outline-info">
+                      <i class="bi bi-people"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i> No stores available. Click "Add New Store" to create one.
+  </div>
+{% endif %}
+{% endblock %}

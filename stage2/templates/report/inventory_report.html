@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory Value Report - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-boxes me-2"></i> Inventory Value Report</h1>
+    <p class="lead">Current inventory status for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.dashboard', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
+    <button class="btn btn-outline-primary ms-2" onclick="window.print()">
+      <i class="bi bi-printer me-1"></i> Print Report
+    </button>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Products</h6>
+            <h3 class="mb-0">{{ total_products }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-box text-primary fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Inventory Value</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(total_value) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-currency-dollar text-success fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Low Stock Items</h6>
+            <h3 class="mb-0">{{ low_stock_count }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-exclamation-triangle text-warning fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Out of Stock Items</h6>
+            <h3 class="mb-0">{{ out_of_stock_count }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-x-circle text-danger fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="card-title mb-0"><i class="bi bi-funnel me-2"></i> Filter Options</h5>
+  </div>
+  <div class="card-body">
+    <form method="get" action="{{ url_for('report.inventory_report', store_id=store.id) }}">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label for="category" class="form-label">Category</label>
+          <select class="form-select" id="category" name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>
+                {{ cat }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="stock_status" class="form-label">Stock Status</label>
+          <select class="form-select" id="stock_status" name="stock_status">
+            <option value="">All Products</option>
+            <option value="low" {% if request.args.get('stock_status') == 'low' %}selected{% endif %}>Low Stock</option>
+            <option value="out" {% if request.args.get('stock_status') == 'out' %}selected{% endif %}>Out of Stock</option>
+            <option value="normal" {% if request.args.get('stock_status') == 'normal' %}selected{% endif %}>Normal Stock</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="sort_by" class="form-label">Sort By</label>
+          <select class="form-select" id="sort_by" name="sort_by">
+            <option value="name" {% if request.args.get('sort_by') == 'name' %}selected{% endif %}>Product Name</option>
+            <option value="value_desc" {% if request.args.get('sort_by') == 'value_desc' %}selected{% endif %}>Highest Value</option>
+            <option value="value_asc" {% if request.args.get('sort_by') == 'value_asc' %}selected{% endif %}>Lowest Value</option>
+            <option value="quantity_desc" {% if request.args.get('sort_by') == 'quantity_desc' %}selected{% endif %}>Highest Quantity</option>
+            <option value="quantity_asc" {% if request.args.get('sort_by') == 'quantity_asc' %}selected{% endif %}>Lowest Quantity</option>
+          </select>
+        </div>
+        <div class="col-md-auto d-flex align-items-end">
+          <div>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search me-1"></i> Apply Filters
+            </button>
+            <a href="{{ url_for('report.inventory_report', store_id=store.id) }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-1"></i> Clear
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0"><i class="bi bi-list-ul me-2"></i> Inventory Items</h5>
+    <span>
+      <i class="bi bi-info-circle me-1"></i> 
+      {{ products|length }} items valued at {{ "${:,.2f}".format(filtered_value) }}
+    </span>
+  </div>
+  <div class="card-body">
+    {% if products %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Category</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total Value</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}">
+                    {{ product.name }}
+                  </a>
+                </td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.category }}</td>
+                <td>{{ product.current_quantity }}</td>
+                <td>{{ "${:.2f}".format(product.unit_price) }}</td>
+                <td>{{ "${:.2f}".format(product.get_stock_value()) }}</td>
+                <td>
+                  {% if product.current_quantity <= 0 %}
+                    <span class="badge bg-danger">Out of Stock</span>
+                  {% elif product.current_quantity <= product.reorder_level %}
+                    <span class="badge bg-warning">Low Stock</span>
+                  {% else %}
+                    <span class="badge bg-success">In Stock</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info mb-0">
+        <i class="bi bi-info-circle me-2"></i> No products found matching your filter criteria.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-info text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-pie-chart me-2"></i> Inventory by Category</h5>
+      </div>
+      <div class="card-body">
+        {% if category_data %}
+          <canvas id="categoryChart" width="400" height="300"></canvas>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No category data available.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-exclamation-triangle me-2"></i> Low Stock Items</h5>
+      </div>
+      <div class="card-body">
+        {% if low_stock_products %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>In Stock</th>
+                  <th>Reorder At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for product in low_stock_products %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}">
+                        {{ product.name }}
+                      </a>
+                    </td>
+                    <td>
+                      {% if product.current_quantity <= 0 %}
+                        <span class="badge bg-danger">{{ product.current_quantity }}</span>
+                      {% else %}
+                        <span class="badge bg-warning">{{ product.current_quantity }}</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ product.reorder_level }}</td>
+                    <td>
+                      <a href="{{ url_for('inventory.stock_in', store_id=store.id, product_id=product.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-graph-up-arrow"></i> Stock In
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-success mb-0">
+            <i class="bi bi-check-circle me-2"></i> All products are above reorder levels.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  {% if category_data %}
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    
+    // Get data from server
+    const categories = {{ category_labels|tojson }};
+    const values = {{ category_values|tojson }};
+    const counts = {{ category_counts|tojson }};
+    
+    // Create chart
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: categories,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FF6D01', '#46BDC6',
+            '#7D3C98', '#2E86C1', '#138D75', '#D35400', '#C9CACE'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const count = counts[context.dataIndex];
+                return `${label}: $${value.toFixed(2)} (${count} items)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+  {% endif %}
+</script>
+{% endblock %}

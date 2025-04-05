@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Supplier - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-plus-circle me-2"></i> Add New Supplier</h1>
+    <p class="lead">Create a new supplier for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('supplier.list_suppliers', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Suppliers
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('supplier.add_supplier', store_id=store.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="mb-3">
+            <label for="name" class="form-label">Supplier Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="contact_name" class="form-label">Contact Person</label>
+              <input type="text" class="form-control" id="contact_name" name="contact_name">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone" name="phone">
+            </div>
+            <div class="col-md-6">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                <label class="form-check-label" for="is_active">
+                  Supplier Active
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-1"></i> Create Supplier
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-info-circle me-2"></i> Supplier Information</h5>
+        <p class="card-text">
+          Adding a new supplier will:
+        </p>
+        <ul>
+          <li>Create a supplier record in the system</li>
+          <li>Allow linking products to this supplier</li>
+          <li>Enable creation of purchase orders</li>
+        </ul>
+        <div class="alert alert-info mb-0">
+          <i class="bi bi-lightbulb me-2"></i>
+          <strong>Tip:</strong> After creating a supplier, you can add products they supply on the next screen.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

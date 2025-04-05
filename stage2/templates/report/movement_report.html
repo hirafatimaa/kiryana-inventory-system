@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+
+{% block title %}Movement Report - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-arrow-left-right me-2"></i> Movement Report</h1>
+    <p class="lead">Inventory movement analysis for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.dashboard', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
+    <button class="btn btn-outline-primary ms-2" onclick="window.print()">
+      <i class="bi bi-printer me-1"></i> Print Report
+    </button>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Stock In</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(stock_in_value) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-graph-up-arrow text-success fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Sales</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(sales_value) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-cart-check text-primary fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Removals</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(removal_value) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-trash text-danger fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Net Movement</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(net_movement) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-calculator text-info fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="card-title mb-0"><i class="bi bi-funnel me-2"></i> Filter Options</h5>
+  </div>
+  <div class="card-body">
+    <form method="get" action="{{ url_for('report.movement_report', store_id=store.id) }}">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label for="product_id" class="form-label">Product</label>
+          <select class="form-select" id="product_id" name="product_id">
+            <option value="">All Products</option>
+            {% for product in products %}
+              <option value="{{ product.id }}" {% if request.args.get('product_id') == product.id|string %}selected{% endif %}>
+                {{ product.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="movement_type" class="form-label">Movement Type</label>
+          <select class="form-select" id="movement_type" name="movement_type">
+            <option value="">All Types</option>
+            <option value="stock_in" {% if request.args.get('movement_type') == 'stock_in' %}selected{% endif %}>Stock In</option>
+            <option value="sale" {% if request.args.get('movement_type') == 'sale' %}selected{% endif %}>Sales</option>
+            <option value="removal" {% if request.args.get('movement_type') == 'removal' %}selected{% endif %}>Removals</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="start_date" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.args.get('start_date', start_date) }}">
+        </div>
+        <div class="col-md-2">
+          <label for="end_date" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request.args.get('end_date', end_date) }}">
+        </div>
+        <div class="col-md-auto d-flex align-items-end">
+          <div>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search me-1"></i> Apply Filters
+            </button>
+            <a href="{{ url_for('report.movement_report', store_id=store.id) }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-1"></i> Clear
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-info text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i> Movement Trends</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="movementChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-graph-up-arrow me-2"></i> Top Products by Stock In</h5>
+      </div>
+      <div class="card-body">
+        {% if top_stock_in %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_stock_in %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=item.product_id) }}">
+                        {{ item.product_name }}
+                      </a>
+                    </td>
+                    <td>{{ item.total_quantity }}</td>
+                    <td>{{ "${:.2f}".format(item.total_value) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No stock in data available for this period.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-trash me-2"></i> Top Products by Removals</h5>
+      </div>
+      <div class="card-body">
+        {% if top_removals %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Value</th>
+                  <th>Main Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_removals %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=item.product_id) }}">
+                        {{ item.product_name }}
+                      </a>
+                    </td>
+                    <td>{{ item.total_quantity }}</td>
+                    <td>{{ "${:.2f}".format(item.total_value) }}</td>
+                    <td>{{ item.main_reason|capitalize if item.main_reason else 'N/A' }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No removal data available for this period.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-cart-check me-2"></i> Top Products by Sales</h5>
+      </div>
+      <div class="card-body">
+        {% if top_sales %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_sales %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=item.product_id) }}">
+                        {{ item.product_name }}
+                      </a>
+                    </td>
+                    <td>{{ item.total_quantity }}</td>
+                    <td>{{ "${:.2f}".format(item.total_value) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No sales data available for this period.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-pie-chart me-2"></i> Movement Distribution</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="distributionChart" width="400" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Movement Chart
+    const movementCtx = document.getElementById('movementChart').getContext('2d');
+    const movementChart = new Chart(movementCtx, {
+      type: 'line',
+      data: {
+        labels: {{ date_labels|tojson }},
+        datasets: [
+          {
+            label: 'Stock In',
+            data: {{ stock_in_data|tojson }},
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            fill: true
+          },
+          {
+            label: 'Sales',
+            data: {{ sales_data|tojson }},
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            fill: true
+          },
+          {
+            label: 'Removals',
+            data: {{ removal_data|tojson }},
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Value ($)'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+    
+    // Distribution Chart
+    const distCtx = document.getElementById('distributionChart').getContext('2d');
+    const distChart = new Chart(distCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Stock In', 'Sales', 'Removals'],
+        datasets: [{
+          data: [
+            {{ stock_in_value }},
+            {{ sales_value }},
+            {{ removal_value }}
+          ],
+          backgroundColor: [
+            '#28a745',
+            '#007bff',
+            '#dc3545'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                return `${label}: $${value.toFixed(2)}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

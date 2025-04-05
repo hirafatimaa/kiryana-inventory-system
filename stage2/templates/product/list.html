@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-box me-2"></i> Products</h1>
+    <p class="lead">Manage products for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('product.add_product', store_id=store.id) }}" class="btn btn-success">
+      <i class="bi bi-plus-circle me-1"></i> Add New Product
+    </a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('product.list_products', store_id=store.id) }}">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <input type="text" class="form-control" name="q" placeholder="Search by name or SKU" value="{{ request.args.get('q', '') }}">
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>
+                {{ cat }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" name="stock">
+            <option value="">All Stock Levels</option>
+            <option value="low" {% if request.args.get('stock') == 'low' %}selected{% endif %}>Low Stock</option>
+            <option value="out" {% if request.args.get('stock') == 'out' %}selected{% endif %}>Out of Stock</option>
+          </select>
+        </div>
+        <div class="col-md-auto">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Filter
+          </button>
+          <a href="{{ url_for('product.list_products', store_id=store.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle me-1"></i> Clear
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if products %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>SKU</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>In Stock</th>
+              <th>Reorder At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}">
+                    {{ product.name }}
+                  </a>
+                </td>
+                <td>{{ product.sku }}</td>
+                <td>{{ product.category }}</td>
+                <td>{{ "${:.2f}".format(product.unit_price) }}</td>
+                <td>
+                  {% if product.current_quantity <= 0 %}
+                    <span class="badge bg-danger">{{ product.current_quantity }}</span>
+                  {% elif product.current_quantity <= product.reorder_level %}
+                    <span class="badge bg-warning">{{ product.current_quantity }}</span>
+                  {% else %}
+                    <span class="badge bg-success">{{ product.current_quantity }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ product.reorder_level }}</td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('product.edit_product', store_id=store.id, product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('inventory.stock_in', store_id=store.id, product_id=product.id) }}" class="btn btn-sm btn-outline-success">
+                      <i class="bi bi-plus-circle"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i> No products found matching your criteria.
+  </div>
+{% endif %}
+{% endblock %}

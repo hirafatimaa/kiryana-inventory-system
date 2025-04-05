@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Store Permissions - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-people me-2"></i> Store Permissions</h1>
+    <p class="lead">Manage user access for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.list_stores') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Stores
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <!-- Current Permissions -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-person-check me-2"></i> Current User Permissions</h5>
+      </div>
+      <div class="card-body">
+        {% if permissions %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Permission Level</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for permission in permissions %}
+                  <tr>
+                    <td>{{ permission.user.username }}</td>
+                    <td>{{ permission.user.email }}</td>
+                    <td>
+                      {% if permission.permission_level == 'read' %}
+                        <span class="badge bg-info">Read Only</span>
+                      {% elif permission.permission_level == 'write' %}
+                        <span class="badge bg-success">Read & Write</span>
+                      {% elif permission.permission_level == 'admin' %}
+                        <span class="badge bg-warning">Store Admin</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="{{ url_for('store.delete_permission', store_id=store.id, permission_id=permission.id) }}" 
+                         class="btn btn-sm btn-outline-danger"
+                         onclick="return confirm('Are you sure you want to remove this permission?')">
+                        <i class="bi bi-trash"></i>
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No user permissions set for this store yet.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Add New Permission -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i> Add User Permission</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('store.add_permission', store_id=store.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="user_id" class="form-label">User</label>
+              <select class="form-select" id="user_id" name="user_id" required>
+                <option value="">Select User...</option>
+                {% for user in users %}
+                  {% if user.id not in [p.user_id for p in permissions] %}
+                    <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="permission_level" class="form-label">Permission Level</label>
+              <select class="form-select" id="permission_level" name="permission_level" required>
+                <option value="read">Read Only</option>
+                <option value="write">Read & Write</option>
+                <option value="admin">Store Admin</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-plus-circle me-1"></i> Add Permission
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm bg-light mb-4">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-shop me-2"></i> Store Details</h5>
+        <p class="mb-1"><strong>Name:</strong> {{ store.name }}</p>
+        <p class="mb-1"><strong>Code:</strong> {{ store.code }}</p>
+        {% if store.location %}
+          <p class="mb-1"><strong>Location:</strong> {{ store.location }}</p>
+        {% endif %}
+        <p class="mb-0">
+          <strong>Status:</strong>
+          {% if store.is_active %}
+            <span class="badge bg-success">Active</span>
+          {% else %}
+            <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i> Permission Levels</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item bg-transparent">
+            <h6 class="mb-1"><span class="badge bg-info">Read Only</span></h6>
+            <p class="mb-0 small">Can view inventory and reports, but cannot modify data.</p>
+          </li>
+          <li class="list-group-item bg-transparent">
+            <h6 class="mb-1"><span class="badge bg-success">Read & Write</span></h6>
+            <p class="mb-0 small">Can view data and record inventory movements (stock in, sales, etc.).</p>
+          </li>
+          <li class="list-group-item bg-transparent">
+            <h6 class="mb-1"><span class="badge bg-warning">Store Admin</span></h6>
+            <p class="mb-0 small">Full access to manage the store, add/edit products, and manage suppliers.</p>
+          </li>
+        </ul>
+        <div class="alert alert-warning mt-3 mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <small>Admin users automatically have access to all stores.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Supplier - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-pencil-square me-2"></i> Edit Supplier</h1>
+    <p class="lead">Update information for {{ supplier.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Supplier
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('supplier.edit_supplier', store_id=store.id, supplier_id=supplier.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="mb-3">
+            <label for="name" class="form-label">Supplier Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ supplier.name }}" required>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="contact_name" class="form-label">Contact Person</label>
+              <input type="text" class="form-control" id="contact_name" name="contact_name" value="{{ supplier.contact_name }}">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email" value="{{ supplier.email }}">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" id="phone" name="phone" value="{{ supplier.phone }}">
+            </div>
+            <div class="col-md-6">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if supplier.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="is_active">
+                  Supplier Active
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="address" class="form-label">Address</label>
+            <textarea class="form-control" id="address" name="address" rows="3">{{ supplier.address }}</textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3">{{ supplier.notes }}</textarea>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-lightning-charge me-2"></i> Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('supplier.supplier_products', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-box me-1"></i> Manage Products
+          </a>
+          <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-outline-info">
+            <i class="bi bi-eye me-1"></i> View Supplier
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-info-circle me-2"></i> Supplier Information</h5>
+        <div class="mb-3">
+          <strong>Created:</strong> {{ supplier.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+        <div class="mb-3">
+          <strong>Last Updated:</strong> {{ supplier.updated_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+        <div>
+          <strong>Products:</strong> {{ supplier.supplier_products|length }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

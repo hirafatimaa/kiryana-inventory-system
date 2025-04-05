@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-pencil-square me-2"></i> Edit User</h1>
+    <p class="lead">Update account for {{ user.username }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('auth.list_users') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Users
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('auth.edit_user', user_id=user.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="first_name" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label for="last_name" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name or '' }}">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="new_password" class="form-label">New Password</label>
+              <input type="password" class="form-control" id="new_password" name="new_password">
+              <div class="form-text">Leave blank to keep current password.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="role_id" class="form-label">Role <span class="text-danger">*</span></label>
+              <select class="form-select" id="role_id" name="role_id" required>
+                {% for role in roles %}
+                  <option value="{{ role.id }}" {% if role.id == user.role_id %}selected{% endif %}>
+                    {{ role.display_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="is_active">Account Active</label>
+            <div class="form-text">Inactive accounts cannot log in.</div>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('auth.list_users') }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm bg-light mb-4">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-person-badge me-2"></i> User Information</h5>
+        <div class="mb-3">
+          <strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+        <div class="mb-3">
+          <strong>Last Login:</strong> 
+          {% if user.last_login %}
+            {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+          {% else %}
+            Never
+          {% endif %}
+        </div>
+        <div>
+          <strong>Current Role:</strong>
+          {% if user.role.name == 'admin' %}
+            <span class="badge bg-danger">Administrator</span>
+          {% elif user.role.name == 'manager' %}
+            <span class="badge bg-primary">Store Manager</span>
+          {% elif user.role.name == 'staff' %}
+            <span class="badge bg-info">Staff</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ user.role.name }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-shop me-2"></i> Store Permissions</h5>
+      </div>
+      <div class="card-body">
+        {% if user.role.name == 'admin' %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> Administrators have access to all stores automatically.
+          </div>
+        {% elif user.store_permissions %}
+          <ul class="list-group list-group-flush mb-3">
+            {% for perm in user.store_permissions %}
+              <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent">
+                <div>{{ perm.store.name }}</div>
+                <span class="badge {% if perm.permission_level == 'read' %}bg-info{% elif perm.permission_level == 'write' %}bg-success{% elif perm.permission_level == 'admin' %}bg-warning{% endif %}">
+                  {{ perm.permission_level }}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+          <a href="{{ url_for('store.list_stores') }}" class="btn btn-sm btn-outline-primary w-100">
+            <i class="bi bi-people me-1"></i> Manage Store Access
+          </a>
+        {% else %}
+          <div class="alert alert-warning mb-3">
+            <i class="bi bi-exclamation-triangle me-2"></i> This user doesn't have access to any stores.
+          </div>
+          <a href="{{ url_for('store.list_stores') }}" class="btn btn-sm btn-outline-primary w-100">
+            <i class="bi bi-plus-circle me-1"></i> Grant Store Access
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Product - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-pencil-square me-2"></i> Edit Product</h1>
+    <p class="lead">Update information for {{ product.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Product
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" action="{{ url_for('product.edit_product', store_id=store.id, product_id=product.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row mb-3">
+            <div class="col-md-8">
+              <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" name="name" value="{{ product.name }}" required>
+            </div>
+            <div class="col-md-4">
+              <label for="category" class="form-label">Category</label>
+              <input type="text" class="form-control" id="category" name="category" value="{{ product.category }}" list="categoryOptions">
+              <datalist id="categoryOptions">
+                {% for cat in categories %}
+                  <option value="{{ cat }}">
+                {% endfor %}
+              </datalist>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="sku" class="form-label">SKU</label>
+              <input type="text" class="form-control" id="sku" name="sku" value="{{ product.sku }}">
+            </div>
+            <div class="col-md-4">
+              <label for="barcode" class="form-label">Barcode</label>
+              <input type="text" class="form-control" id="barcode" name="barcode" value="{{ product.barcode }}">
+            </div>
+            <div class="col-md-4">
+              <label for="location_in_store" class="form-label">Location in Store</label>
+              <input type="text" class="form-control" id="location_in_store" name="location_in_store" value="{{ product.location_in_store }}">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3">{{ product.description }}</textarea>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="unit_price" class="form-label">Selling Price <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="unit_price" name="unit_price" min="0" step="0.01" value="{{ product.unit_price }}" required>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="cost_price" class="form-label">Cost Price</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="cost_price" name="cost_price" min="0" step="0.01" value="{{ product.cost_price }}">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="reorder_level" class="form-label">Reorder Level <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="reorder_level" name="reorder_level" min="0" value="{{ product.reorder_level }}" required>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="image_url" class="form-label">Image URL</label>
+            <input type="url" class="form-control" id="image_url" name="image_url" value="{{ product.image_url }}" placeholder="https://example.com/image.jpg">
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('product.view_product', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-lightning-charge me-2"></i> Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('inventory.stock_in', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-graph-up-arrow me-1"></i> Record Stock In
+          </a>
+          <a href="{{ url_for('inventory.movements', store_id=store.id, product_id=product.id) }}" class="btn btn-outline-info">
+            <i class="bi bi-list-ul me-1"></i> View Movements
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    {% if product.image_url %}
+      <div class="card border-0 shadow-sm mb-4">
+        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+        <div class="card-body">
+          <h6 class="card-title">Current Product Image</h6>
+        </div>
+      </div>
+    {% endif %}
+    
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-info-circle me-2"></i> Product Information</h5>
+        <div class="mb-3">
+          <strong>Created:</strong> {{ product.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+        <div class="mb-3">
+          <strong>Last Updated:</strong> {{ product.updated_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+        <div class="mb-3">
+          <strong>Current Stock:</strong> 
+          {% if product.current_quantity <= 0 %}
+            <span class="badge bg-danger">{{ product.current_quantity }}</span>
+          {% elif product.current_quantity <= product.reorder_level %}
+            <span class="badge bg-warning">{{ product.current_quantity }}</span>
+          {% else %}
+            <span class="badge bg-success">{{ product.current_quantity }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

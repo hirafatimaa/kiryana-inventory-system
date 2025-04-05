@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Report - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-currency-dollar me-2"></i> Sales Report</h1>
+    <p class="lead">Sales analysis for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('store.dashboard', store_id=store.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+    </a>
+    <button class="btn btn-outline-primary ms-2" onclick="window.print()">
+      <i class="bi bi-printer me-1"></i> Print Report
+    </button>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Total Sales</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(total_sales) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-cash-stack text-success fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Units Sold</h6>
+            <h3 class="mb-0">{{ total_units }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-box-seam text-primary fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Avg. Sale Value</h6>
+            <h3 class="mb-0">{{ "${:.2f}".format(avg_sale_value) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-calculator text-info fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="text-muted mb-1">Estimated Profit</h6>
+            <h3 class="mb-0">{{ "${:,.2f}".format(estimated_profit) }}</h3>
+          </div>
+          <div class="bg-light p-3 rounded-circle">
+            <i class="bi bi-graph-up text-success fs-3"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="card-title mb-0"><i class="bi bi-funnel me-2"></i> Filter Options</h5>
+  </div>
+  <div class="card-body">
+    <form method="get" action="{{ url_for('report.sales_report', store_id=store.id) }}">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <label for="category" class="form-label">Category</label>
+          <select class="form-select" id="category" name="category">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>
+                {{ cat }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="start_date" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request.args.get('start_date', start_date) }}">
+        </div>
+        <div class="col-md-2">
+          <label for="end_date" class="form-label">End Date</label>
+          <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request.args.get('end_date', end_date) }}">
+        </div>
+        <div class="col-md-2">
+          <label for="sort_by" class="form-label">Sort By</label>
+          <select class="form-select" id="sort_by" name="sort_by">
+            <option value="value" {% if request.args.get('sort_by') == 'value' or not request.args.get('sort_by') %}selected{% endif %}>Highest Value</option>
+            <option value="quantity" {% if request.args.get('sort_by') == 'quantity' %}selected{% endif %}>Highest Quantity</option>
+            <option value="profit" {% if request.args.get('sort_by') == 'profit' %}selected{% endif %}>Highest Profit</option>
+          </select>
+        </div>
+        <div class="col-md-auto d-flex align-items-end">
+          <div>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search me-1"></i> Apply Filters
+            </button>
+            <a href="{{ url_for('report.sales_report', store_id=store.id) }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-1"></i> Clear
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-info text-dark">
+        <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i> Sales Trend</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="salesChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-list-ul me-2"></i> Top Selling Products</h5>
+      </div>
+      <div class="card-body">
+        {% if top_products %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Units Sold</th>
+                  <th>Revenue</th>
+                  <th>Avg. Price</th>
+                  <th>Est. Profit</th>
+                  <th>Profit %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in top_products %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=item.product_id) }}">
+                        {{ item.product_name }}
+                      </a>
+                    </td>
+                    <td>{{ item.total_quantity }}</td>
+                    <td>{{ "${:.2f}".format(item.total_value) }}</td>
+                    <td>{{ "${:.2f}".format(item.avg_price) }}</td>
+                    <td>{{ "${:.2f}".format(item.profit) }}</td>
+                    <td>
+                      {% if item.profit_percent > 0 %}
+                        <span class="text-success">{{ "%.1f"|format(item.profit_percent) }}%</span>
+                      {% else %}
+                        <span class="text-danger">{{ "%.1f"|format(item.profit_percent) }}%</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No sales data available for this period.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-pie-chart me-2"></i> Sales by Category</h5>
+      </div>
+      <div class="card-body">
+        <canvas id="categoryChart" width="400" height="300"></canvas>
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-secondary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i> Report Information</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Report Period</dt>
+          <dd class="col-sm-8">{{ start_date_formatted }} to {{ end_date_formatted }}</dd>
+          
+          <dt class="col-sm-4">Total Products</dt>
+          <dd class="col-sm-8">{{ top_products|length }}</dd>
+          
+          <dt class="col-sm-4">Generated</dt>
+          <dd class="col-sm-8">{{ now.strftime('%Y-%m-%d %H:%M') }}</dd>
+          
+          <dt class="col-sm-4">Store</dt>
+          <dd class="col-sm-8">{{ store.name }} ({{ store.code }})</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: {{ date_labels|tojson }},
+        datasets: [
+          {
+            label: 'Sales Revenue',
+            data: {{ sales_data|tojson }},
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+            yAxisID: 'y',
+            fill: true
+          },
+          {
+            label: 'Units Sold',
+            data: {{ units_data|tojson }},
+            borderColor: '#28a745',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            yAxisID: 'y1',
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Revenue ($)'
+            }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: {
+              drawOnChartArea: false,
+            },
+            title: {
+              display: true,
+              text: 'Units'
+            },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+    
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(categoryCtx, {
+      type: 'pie',
+      data: {
+        labels: {{ category_labels|tojson }},
+        datasets: [{
+          data: {{ category_values|tojson }},
+          backgroundColor: [
+            '#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FF6D01', '#46BDC6',
+            '#7D3C98', '#2E86C1', '#138D75', '#D35400', '#C9CACE'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'right',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const percent = (value / {{ total_sales }} * 100).toFixed(1);
+                return `${label}: $${value.toFixed(2)} (${percent}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

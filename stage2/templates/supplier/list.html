@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Suppliers - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-truck me-2"></i> Suppliers</h1>
+    <p class="lead">Manage suppliers for {{ store.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('supplier.add_supplier', store_id=store.id) }}" class="btn btn-success">
+      <i class="bi bi-plus-circle me-1"></i> Add New Supplier
+    </a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('supplier.list_suppliers', store_id=store.id) }}">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input type="text" class="form-control" name="q" placeholder="Search by name or contact" value="{{ request.args.get('q', '') }}">
+        </div>
+        <div class="col-md-auto">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Search
+          </button>
+          <a href="{{ url_for('supplier.list_suppliers', store_id=store.id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle me-1"></i> Clear
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if suppliers %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Contact Person</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Products</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for supplier in suppliers %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=supplier.id) }}">
+                    {{ supplier.name }}
+                  </a>
+                </td>
+                <td>{{ supplier.contact_name or '-' }}</td>
+                <td>
+                  {% if supplier.email %}
+                    <a href="mailto:{{ supplier.email }}">{{ supplier.email }}</a>
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td>{{ supplier.phone or '-' }}</td>
+                <td>{{ supplier.supplier_products|length }}</td>
+                <td>
+                  {% if supplier.is_active %}
+                    <span class="badge bg-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-danger">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('supplier.edit_supplier', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{{ url_for('supplier.supplier_products', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-sm btn-outline-info">
+                      <i class="bi bi-box"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i> No suppliers found matching your criteria.
+  </div>
+{% endif %}
+{% endblock %}

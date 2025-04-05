@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Supplier Products - Kiryana Inventory{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h1 class="display-5"><i class="bi bi-box me-2"></i> Manage Products</h1>
+    <p class="lead">Products supplied by {{ supplier.name }}</p>
+  </div>
+  <div class="col-auto">
+    <a href="{{ url_for('supplier.view_supplier', store_id=store.id, supplier_id=supplier.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Supplier
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <!-- Existing Supplier Products -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-list-ul me-2"></i> Current Products</h5>
+      </div>
+      <div class="card-body">
+        {% if supplier.supplier_products %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Supplier SKU</th>
+                  <th>Cost Price</th>
+                  <th>Lead Time</th>
+                  <th>Min. Order</th>
+                  <th>Preferred</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sp in supplier.supplier_products %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('product.view_product', store_id=store.id, product_id=sp.product_id) }}">
+                        {{ sp.product.name }}
+                      </a>
+                    </td>
+                    <td>{{ sp.supplier_sku or '-' }}</td>
+                    <td>{{ "${:.2f}".format(sp.cost_price) if sp.cost_price else '-' }}</td>
+                    <td>{{ sp.lead_time_days or '-' }} days</td>
+                    <td>{{ sp.minimum_order_quantity }}</td>
+                    <td>
+                      {% if sp.is_preferred %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                      {% else %}
+                        <i class="bi bi-star text-muted"></i>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <form method="post" action="{{ url_for('supplier.remove_supplier_product', store_id=store.id, supplier_id=supplier.id, product_id=sp.product_id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to remove this product?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                      <!-- Edit button would go here in a more complete implementation -->
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="alert alert-info mb-0">
+            <i class="bi bi-info-circle me-2"></i> No products linked to this supplier yet. Add some below.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Add New Supplier Product -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i> Add New Product</h5>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('supplier.supplier_products', store_id=store.id, supplier_id=supplier.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="product_id" class="form-label">Product <span class="text-danger">*</span></label>
+              <select class="form-select" id="product_id" name="product_id" required>
+                <option value="">Select a product...</option>
+                {% for product in available_products %}
+                  <option value="{{ product.id }}">{{ product.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="supplier_sku" class="form-label">Supplier SKU</label>
+              <input type="text" class="form-control" id="supplier_sku" name="supplier_sku">
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="cost_price" class="form-label">Cost Price</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="cost_price" name="cost_price" min="0" step="0.01">
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="lead_time_days" class="form-label">Lead Time (days)</label>
+              <input type="number" class="form-control" id="lead_time_days" name="lead_time_days" min="0">
+            </div>
+            <div class="col-md-4">
+              <label for="minimum_order_quantity" class="form-label">Min. Order Quantity</label>
+              <input type="number" class="form-control" id="minimum_order_quantity" name="minimum_order_quantity" min="1" value="1">
+            </div>
+          </div>
+          
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="is_preferred" name="is_preferred">
+            <label class="form-check-label" for="is_preferred">Preferred Supplier for this Product</label>
+          </div>
+          
+          <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-plus-circle me-1"></i> Add Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-lg-4">
+    <!-- Supplier Information -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i> Supplier Information</h5>
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">{{ supplier.name }}</h5>
+        <dl class="row mb-0">
+          {% if supplier.contact_name %}
+            <dt class="col-sm-4">Contact</dt>
+            <dd class="col-sm-8">{{ supplier.contact_name }}</dd>
+          {% endif %}
+          
+          {% if supplier.email %}
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">
+              <a href="mailto:{{ supplier.email }}">{{ supplier.email }}</a>
+            </dd>
+          {% endif %}
+          
+          {% if supplier.phone %}
+            <dt class="col-sm-4">Phone</dt>
+            <dd class="col-sm-8">
+              <a href="tel:{{ supplier.phone }}">{{ supplier.phone }}</a>
+            </dd>
+          {% endif %}
+          
+          <dt class="col-sm-4">Status</dt>
+          <dd class="col-sm-8">
+            {% if supplier.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-danger">Inactive</span>
+            {% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+    
+    <div class="card border-0 shadow-sm bg-light">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-lightbulb me-2"></i> Tips</h5>
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">
+            <i class="bi bi-check-circle text-success me-2"></i>
+            Adding a <strong>Supplier SKU</strong> makes ordering easier.
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-check-circle text-success me-2"></i>
+            <strong>Lead time</strong> helps calculate when to reorder.
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-check-circle text-success me-2"></i>
+            Set as <strong>preferred</strong> to automatically select this supplier for purchase orders.
+          </li>
+          <li>
+            <i class="bi bi-check-circle text-success me-2"></i>
+            <strong>Min. Order Quantity</strong> is the smallest amount the supplier will sell.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
