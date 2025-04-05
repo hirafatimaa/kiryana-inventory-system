@@ -103,7 +103,7 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = config.port || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, config.host, () => {
   console.log(`🚀 API Gateway running on port ${PORT}`);
   console.log(`Environment: ${config.nodeEnv}`);
   console.log('Available services:');

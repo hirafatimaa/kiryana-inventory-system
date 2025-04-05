@@ -8,6 +8,7 @@ require('dotenv').config({ path: '../../.env' });
 const config = {
   // API Gateway Configuration
   port: process.env.API_GATEWAY_PORT || 3000,
+  host: process.env.API_GATEWAY_HOST || '0.0.0.0',
   nodeEnv: process.env.NODE_ENV || 'development',
   
   // Service URLs
