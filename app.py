@@ -22,9 +22,8 @@ app.secret_key = os.environ.get("SESSION_SECRET", "inventory_tracking_secret")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
 # Configure database
-# For Phase 1: Use SQLite
-# For Phase 2 & 3: This will be upgraded to PostgreSQL
-database_url = os.environ.get("DATABASE_URL", "sqlite:///inventory.db")
+# Use PostgreSQL database provided by the environment
+database_url = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,

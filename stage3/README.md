@@ -1,69 +1,26 @@
-# Kiryana Inventory System - Stage 3 (Enterprise Edition)
+# Kiryana Inventory System - Stage 3 (Microservices Architecture)
 
-This is the Stage 3 implementation of the Kiryana Inventory System, providing an enterprise-grade, scalable solution for managing thousands of stores with a microservices architecture.
+## Overview
 
-## Architecture Overview
+Stage 3 of the Kiryana Inventory System implements a microservices architecture designed to support thousands of stores with high scalability, reliability, and performance requirements. This stage represents the enterprise-level solution for nationwide store chains.
 
-This implementation follows a microservices architecture with the following components:
+## Architecture
 
-### Core Services
-- **Authentication Service**: User management, authentication, and authorization
-- **Product Service**: Product catalog management
-- **Inventory Service**: Inventory tracking and movement processing
-- **Store Service**: Store management and inter-store operations
-- **Reporting Service**: Analytics and business intelligence
+The system is divided into the following microservices:
 
-### Infrastructure Components
-- **API Gateway**: Single entry point for all client requests
-- **Message Queue**: Asynchronous communication between services
-- **Service Discovery**: Dynamic service registration and discovery
-- **Distributed Database**: Horizontally scalable data storage
+1. **API Gateway**: Central entry point for all client requests, handles routing, authentication verification, and load balancing.
+2. **Auth Service**: Manages user authentication, authorization, and user/role management.
+3. **Product Service**: Handles product catalog management and product-related operations.
+4. **Inventory Service**: Manages inventory movements, stock levels, and inventory-related business logic.
+5. **Store Service**: Manages store information, settings, and store-specific configurations.
+6. **Report Service**: Generates business reports, analytics, and insights.
 
-## Key Features
+## Technology Stack
 
-### Enterprise-Scale Management
-- Support for thousands of store locations
-- Horizontal scaling capabilities
-- High availability and fault tolerance
-- Traffic management and load balancing
-
-### Advanced Security
-- OAuth2-based authentication
-- Fine-grained authorization
-- Audit logging and compliance reporting
-- Data encryption in transit and at rest
-
-### Real-Time Operations
-- Event-driven architecture
-- Real-time inventory updates across stores
-- Live dashboards and analytics
-- Intelligent reordering and inventory optimization
-
-### Global Distribution
-- Multi-region deployment support
-- Data replication and synchronization
-- Regional fail-over and disaster recovery
-- Localization and multi-currency support
-
-## Technical Architecture
-
-### Microservices Communication
-- REST APIs for synchronous communication
-- Message queues for asynchronous events
-- Event sourcing for maintaining data consistency
-
-### Scalability Approach
-- Stateless services for horizontal scaling
-- Database sharding for data distribution
-- Caching strategies for performance optimization
-- Auto-scaling based on demand
-
-### Deployment Strategy
-- Containerized services with Docker
-- Orchestration with Kubernetes
-- CI/CD pipelines for automated deployment
-- Infrastructure as Code for environment provisioning
-
-## Implementation Status
-
-This is a conceptual architecture for Stage 3. The implementation will be completed in future phases.
+- **Backend**: Node.js with Express.js
+- **Database**: MongoDB for service-specific data stores
+- **Authentication**: JWT-based authentication
+- **Communication**: RESTful APIs between services
+- **Logging**: Centralized logging with Winston
+- **Deployment**: Docker containers with orchestration
+- **Testing**: Jest for unit and integration tests
