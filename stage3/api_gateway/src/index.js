@@ -103,10 +103,12 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = config.port || 3000;
-app.listen(PORT, config.host, () => {
-  console.log(`🚀 API Gateway running on port ${PORT}`);
-  console.log(`Environment: ${config.nodeEnv}`);
-  console.log('Available services:');
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 API Gateway running on port ${PORT} in ${config.nodeEnv} mode`);
+  console.log('\nService URLs:');
+  Object.entries(config.services).forEach(([service, url]) => {
+    console.log(`- ${service}: ${url}`);
+  });
   Object.entries(config.services).forEach(([service, url]) => {
     console.log(`- ${service}: ${url}`);
   });
