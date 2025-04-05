@@ -1,0 +1,20 @@
+# Dependency directories
+node_modules
+npm-debug.log
+
+# Coverage and test reports
+coverage
+.nyc_output
+
+# Dev files
+.git
+.gitignore
+.eslintrc
+.editorconfig
+Dockerfile
+docker-compose.yml
+README.md
+
+# Logs
+logs
+*.log
