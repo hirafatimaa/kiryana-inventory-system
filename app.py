@@ -4,6 +4,7 @@
 
 import os
 import logging
+from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -28,6 +29,11 @@ db = SQLAlchemy(model_class=Base)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "inventory_tracking_secret")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
+
+# Add datetime to all templates
+@app.context_processor
+def inject_now():
+    return {'now': datetime.utcnow()}
 
 # Configure application settings from environment variables
 app.config['DEBUG'] = os.environ.get("FLASK_DEBUG", "1") == "1"
@@ -69,4 +75,13 @@ with app.app_context():
     # Import views and register blueprints
     from views import register_views
     register_views(app)
+    
+    # Import and register additional routes for template compatibility
+    try:
+        from routes import register_additional_routes
+        register_additional_routes(app)
+        logger.info("Additional compatibility routes registered")
+    except ImportError:
+        logger.warning("Routes module not found, skipping additional routes")
+        
     logger.info("Views registered")
