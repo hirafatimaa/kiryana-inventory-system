@@ -92,6 +92,7 @@ def register_store_commands():
     # Add store
     add_store_parser = subparsers.add_parser('add-store', help='Add a new store')
     add_store_parser.add_argument('--name', required=True, help='Store name')
+    add_store_parser.add_argument('--code', required=True, help='Store code (unique identifier)')
     add_store_parser.add_argument('--location', required=True, help='Store location')
     
     # Show store details
@@ -491,7 +492,7 @@ def handle_list_stores(args):
             return
         
         # Format the output
-        headers = ["ID", "Name", "Location", "Products", "Created At"]
+        headers = ["ID", "Name", "Code", "Location", "Products", "Created At"]
         rows = []
         
         for s in stores:
@@ -501,6 +502,7 @@ def handle_list_stores(args):
             rows.append([
                 s.id,
                 s.name,
+                s.code,
                 s.location,
                 product_count,
                 s.created_at.strftime("%Y-%m-%d")
@@ -521,6 +523,7 @@ def handle_add_store(args):
         # Create new store
         new_store = Store(
             name=args.name,
+            code=args.code,
             location=args.location
         )
         
@@ -542,6 +545,7 @@ def handle_show_store(args):
         print("=" * 50)
         print(f"ID:             {store.id}")
         print(f"Name:           {store.name}")
+        print(f"Code:           {store.code}")
         print(f"Location:       {store.location}")
         print(f"Created At:     {store.created_at}")
         print(f"Updated At:     {store.updated_at}")
