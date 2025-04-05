@@ -1,0 +1,70 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Stage 2 - Run Kiryana App",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage2",
+            "program": "${workspaceFolder}/stage2/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Stage 3 - Run All Microservices",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3",
+            "program": "${workspaceFolder}/stage3/start_all_services.sh",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stage 3 - API Gateway",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3/api_gateway",
+            "program": "${workspaceFolder}/stage3/api_gateway/src/index.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stage 3 - Auth Service",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3/services/auth",
+            "program": "${workspaceFolder}/stage3/services/auth/src/app.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stage 3 - Product Service",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3/services/product",
+            "program": "${workspaceFolder}/stage3/services/product/src/app.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stage 3 - Inventory Service",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3/services/inventory",
+            "program": "${workspaceFolder}/stage3/services/inventory/src/app.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stage 3 - Store Service",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3/services/store",
+            "program": "${workspaceFolder}/stage3/services/store/src/app.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stage 3 - Reporting Service",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/stage3/services/reporting",
+            "program": "${workspaceFolder}/stage3/services/reporting/src/app.js",
+            "console": "integratedTerminal"
+        }
+    ]
+}

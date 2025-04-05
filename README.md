@@ -1,190 +1,99 @@
 # Kiryana Inventory System
 
-A comprehensive inventory tracking system for kiryana stores (small retail shops) with a growth path from single store to multi-store enterprise solution.
+A scalable inventory tracking system for kiryana stores, leveraging microservices architecture to provide comprehensive multi-store inventory management with intelligent analytics and user-friendly interfaces.
 
-## Project Overview
+## Project Structure
 
-This system allows kiryana store owners to track their inventory, record stock movements (purchases, sales, and removals), and generate reports. It follows a three-stage implementation approach to accommodate different scales of operation:
+This project is organized into three stages of development:
 
-### Three-Stage Implementation
+- **Stage 1**: Initial prototype (deprecated, moved to `stage1_backup/`)
+- **Stage 2**: Multi-store flask application (located in `stage2/`)
+- **Stage 3**: Microservices architecture (located in `stage3/`)
 
-1. **Stage 1: Single Store** - Local storage for a single kiryana store
-   - Basic inventory management
-   - Product tracking
-   - Stock movement recording (in/out)
-   - Simple reporting
+## Running the Application
 
-2. **Stage 2: Multi-Store** - PostgreSQL-based solution for up to 500 stores
-   - Multi-store support
-   - User authentication and role-based permissions
-   - Store-specific views and operations
-   - Advanced reporting and analytics
-   - Supplier management
-   - REST API for integrations
+### Quick Start
 
-3. **Stage 3: Enterprise** - Microservices architecture for thousands of stores
-   - Horizontally scalable microservices
-   - High availability and fault tolerance
-   - Real-time analytics and monitoring
-   - Event-driven architecture
-   - Global deployment capabilities
-
-## Features
-
-### Core Features Across All Stages
-
-- **Product Management**: Add, edit, and manage product information
-- **Inventory Tracking**: Monitor stock levels and receive low stock alerts
-- **Stock Movements**: Record stock-in, sales, and manual removals
-- **Reporting**: Generate inventory reports and movement histories
-
-### Stage 2 Additional Features
-
-- **Multi-Store Management**: Operate and track multiple store locations
-- **User Management**: Role-based access control (Admin, Manager, Staff)
-- **Supplier Management**: Track suppliers and their product relationships
-- **Purchase Order Processing**: Create and manage purchase orders
-- **Sales Order Management**: Record and track sales orders
-- **Inventory Transfers**: Move inventory between stores
-- **Advanced Reporting**: Store-specific and consolidated reports
-
-### Stage 3 Additional Features
-
-- **Real-Time Analytics**: Live dashboards and business intelligence
-- **Distributed Data**: Data sharding and replication
-- **High Availability**: Fault tolerance and disaster recovery
-- **Global Scale**: Support for thousands of concurrent users
-- **Advanced Security**: OAuth2, encryption, and audit logging
-
-## Technical Architecture
-
-### Stage 1: Single Store
-
-- **Frontend**: HTML/CSS/JS with Flask templates
-- **Backend**: Python Flask application
-- **Database**: SQLite for local storage
-- **Features**: Basic CRUD operations for inventory management
-
-### Stage 2: Multi-Store
-
-- **Frontend**: Enhanced UI with Bootstrap
-- **Backend**: Flask with Blueprint-based modules
-- **Database**: PostgreSQL
-- **Security**: Flask-Login for authentication
-- **API**: RESTful API endpoints
-
-### Stage 3: Enterprise
-
-- **Architecture**: Microservices pattern
-- **Services**:
-  - Authentication Service
-  - Product Service
-  - Inventory Service
-  - Store Service
-  - Reporting Service
-- **Infrastructure**: API Gateway, Message Queue
-- **Deployment**: Containerized services for horizontal scaling
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.x
-- PostgreSQL database (for Stage 2 and 3)
-- Required Python packages:
-  - flask
-  - flask-login
-  - flask-sqlalchemy
-  - flask-wtf
-  - gunicorn
-  - psycopg2-binary
-  - sqlalchemy
-  - tabulate
-  - werkzeug
-  - wtforms
-  - email-validator
-
-### Installation
-
-1. Clone the repository
-2. Navigate to the desired stage directory:
-   ```bash
-   cd stage1  # For single store solution
-   # OR
-   cd stage2  # For multi-store solution
-   ```
-3. Set up environment variables:
-   ```
-   DATABASE_URL=postgresql://user:password@localhost/kiryana_inventory
-   ```
-4. Run the application:
-   ```bash
-   python main.py
-   ```
-
-### Default Login (Stage 2 and 3)
-
-- Username: admin
-- Password: admin123 (change immediately after first login)
-
-## Usage
-
-### Web Interface
-
-The system provides a web interface for all operations:
-
-1. Login to the system
-2. Navigate to the desired store (for Stage 2 and 3)
-3. Use the dashboard to access different functions:
-   - Add/edit products
-   - Record stock movements
-   - Generate reports
-   - Manage users and permissions (admin)
-
-### Command-Line Interface
-
-A CLI is also available for all core operations:
+Simple run scripts are provided in the root directory:
 
 ```bash
-# Display help
-python cli.py --help
+# To run Stage 2 (Flask application)
+./run_stage2.sh
 
-# List all products
-python cli.py products list
-
-# Add a new product
-python cli.py products add "Product Name" --price 10.99
-
-# Record stock in
-python cli.py inventory stock-in 1 50 --price 9.50
-
-# Record a sale
-python cli.py inventory sell 1 5
-
-# Show current inventory
-python cli.py inventory status
+# To run Stage 3 (Microservices)
+./run_stage3.sh
 ```
 
-## Contributing
+### VS Code Integration
 
-Contributions to improve the Kiryana Inventory System are welcome. Please follow these steps:
+This project includes VS Code launch configurations to easily run either Stage 2 or Stage 3:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Open the project in VS Code
+2. Go to Run and Debug (Ctrl+Shift+D)
+3. Select from the dropdown:
+   - `Stage 2 - Run Kiryana App` to run the Flask application
+   - `Stage 3 - Run All Microservices` to run all Stage 3 microservices
+   - Individual Stage 3 services can also be run separately
 
-## License
+### Stage 2 (Flask Multi-Store Application)
 
-Distributed under the MIT License. See `LICENSE` for more information.
+To run the Stage 2 application manually:
 
-## Contact
+```bash
+cd stage2
+./start.sh
+# or directly with
+python main.py
+```
 
-Project Link: [https://github.com/hira-fatima/kiryana-inventory-system](https://github.com/hira-fatima/kiryana-inventory-system)
+This will start the Flask application on http://localhost:5000.
 
----
+Default admin credentials:
+- Username: admin
+- Email: admin@example.com
+- Password: admin_password
 
-Developed by Hira Fatima for the growing needs of kiryana stores across Pakistan.
+### Stage 3 (Microservices Architecture)
 
-© 2025 Hira Fatima - All Rights Reserved
+The Stage 3 architecture consists of several microservices managed by an API Gateway:
+
+- API Gateway (port 3000)
+- Auth Service (port 3001)
+- Product Service (port 3002)
+- Inventory Service (port 3003)
+- Store Service (port 3004)
+- Reporting Service (port 3005)
+
+To run all services at once:
+
+```bash
+cd stage3
+./start_all_services.sh
+```
+
+API Gateway will be available at http://localhost:3000.
+
+For more detailed instructions, refer to [Stage 3 README](stage3/README_HOW_TO_RUN.md).
+
+## Core Technologies
+
+- Python-based multi-store application (Stage 2)
+- Node.js-based microservices (Stage 3)
+- PostgreSQL database (shared across stages)
+- RESTful API design
+- JWT authentication
+
+## Database
+
+Both Stage 2 and Stage 3 use the same PostgreSQL database. Database connection is configured through environment variables in `.env` files.
+
+## Command Line Interface (CLI)
+
+The system includes a Command Line Interface for inventory management:
+
+```bash
+# From Stage 2 directory
+python cli.py --help
+```
+
+See [CLI README](stage2/README_CLI.md) for detailed CLI usage.

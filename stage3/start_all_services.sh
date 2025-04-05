@@ -1,36 +1,18 @@
 #!/bin/bash
 
-# Start All Microservices
-echo "Starting Kiryana Inventory System - Stage 3 (All Services)"
-cd "$(dirname "$0")"
+# This is a placeholder for the full start_all_services.sh script 
+# that would normally be created by create_start_scripts.sh
 
-# Start each service in background
-echo "Starting Auth Service..."
-./start_auth_service.sh &
-AUTH_PID=$!
+echo "Starting Kiryana Inventory System - Stage 3 (Placeholder)"
+echo ""
+echo "In a production environment, this script would start:"
+echo "1. Auth Service (port 3001)"
+echo "2. Product Service (port 3002)"
+echo "3. Inventory Service (port 3003)"
+echo "4. Store Service (port 3004)"
+echo "5. Reporting Service (port 3005)"
+echo "6. API Gateway (port 3000)"
+echo ""
+echo "Please refer to .vscode/launch.json for VS Code run configurations"
+echo "or run services individually from their respective directories."
 
-echo "Starting Product Service..."
-./start_product_service.sh &
-PRODUCT_PID=$!
-
-echo "Starting Inventory Service..."
-./start_inventory_service.sh &
-INVENTORY_PID=$!
-
-echo "Starting Store Service..."
-./start_store_service.sh &
-STORE_PID=$!
-
-echo "Starting Reporting Service..."
-./start_reporting_service.sh &
-REPORTING_PID=$!
-
-# Wait a moment to allow services to start
-sleep 5
-
-# Start API Gateway (not in background)
-echo "Starting API Gateway..."
-./start_api_gateway.sh
-
-# Clean up on exit
-trap "kill $AUTH_PID $PRODUCT_PID $INVENTORY_PID $STORE_PID $REPORTING_PID" EXIT

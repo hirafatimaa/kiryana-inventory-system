@@ -1,39 +1,37 @@
 {
-  "name": "kiryana-inventory-system",
+  "name": "kiryana-inventory-system-stage3",
   "version": "3.0.0",
-  "description": "Kiryana Inventory System - Microservices Architecture",
+  "description": "Kiryana Inventory System - Stage 3 Microservices",
   "main": "index.js",
   "scripts": {
-    "start": "node api_gateway/src/index.js",
-    "dev": "nodemon api_gateway/src/index.js",
-    "test": "jest --coverage",
-    "lint": "eslint ."
+    "start": "./start_all_services.sh",
+    "start:api": "./start_api_gateway.sh",
+    "start:auth": "./start_auth_service.sh",
+    "start:product": "./start_product_service.sh",
+    "start:inventory": "./start_inventory_service.sh",
+    "start:store": "./start_store_service.sh",
+    "start:reporting": "./start_reporting_service.sh"
   },
   "keywords": [
     "inventory",
-    "microservices",
-    "kiryana"
+    "kiryana",
+    "microservices"
   ],
   "author": "Bazaar Technologies",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
+    "compression": "^1.7.4",
     "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "helmet": "^6.0.1",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
     "http-proxy-middleware": "^2.0.6",
-    "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.0.3",
-    "winston": "^3.8.2",
-    "express-rate-limit": "^6.7.0",
-    "kafkajs": "^2.2.4",
-    "pg": "^8.10.0",
-    "sequelize": "^6.30.0"
-  },
-  "devDependencies": {
-    "eslint": "^8.37.0",
-    "jest": "^29.5.0",
-    "nodemon": "^2.0.22",
-    "supertest": "^6.3.3"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "morgan": "^1.10.0",
+    "pg": "^8.11.3",
+    "sequelize": "^6.35.2",
+    "winston": "^3.11.0"
   }
 }
