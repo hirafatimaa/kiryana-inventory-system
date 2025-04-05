@@ -77,3 +77,9 @@ python cli.py stock-in --help
 - **Reporting**: Generate reports for business analysis
 - **Automation**: Script inventory operations for automated processes
 - **Remote Management**: Manage inventory through SSH when a web browser is not available
+
+---
+
+Developed by Hira Fatima for the Kiryana Inventory System project.
+
+© 2025 Hira Fatima - All Rights Reserved

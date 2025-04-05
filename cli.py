@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Kiryana Inventory System - Command Line Interface
+Developed by Hira Fatima
+
 This CLI allows you to manage inventory operations directly from the terminal.
 """
 
@@ -345,7 +347,9 @@ def handle_removal(args):
 def handle_inventory(args):
     """Show current inventory status"""
     with setup_cli():
-        products = Product.query.order_by(Product.current_quantity.desc()).all()
+        # Order by current_quantity in descending order using SQLAlchemy's desc()
+        from sqlalchemy import desc
+        products = Product.query.order_by(desc(Product.current_quantity)).all()
         
         if not products:
             print("No products found.")

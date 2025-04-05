@@ -1,3 +1,7 @@
+# Kiryana Inventory System
+# Developed by Hira Fatima
+# Form definitions for the inventory system
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, FloatField, IntegerField, SelectField, SubmitField, DateField
 from wtforms.validators import DataRequired, Optional, NumberRange

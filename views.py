@@ -1,3 +1,7 @@
+# Kiryana Inventory System
+# Developed by Hira Fatima
+# Flask views for inventory tracking
+
 from datetime import datetime, date
 from flask import render_template, request, redirect, url_for, flash
 from app import db

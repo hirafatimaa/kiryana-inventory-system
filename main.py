@@ -1,3 +1,7 @@
+# Kiryana Inventory System
+# Developed by Hira Fatima
+# A scalable inventory tracking system for kiryana stores
+
 from app import app
 
 if __name__ == "__main__":

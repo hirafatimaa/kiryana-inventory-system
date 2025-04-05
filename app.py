@@ -1,3 +1,7 @@
+# Kiryana Inventory System
+# Developed by Hira Fatima
+# A scalable inventory tracking system for kiryana stores
+
 import os
 import logging
 from dotenv import load_dotenv

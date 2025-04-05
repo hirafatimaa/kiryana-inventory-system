@@ -181,8 +181,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Project Link: [https://github.com/yourusername/kiryana-inventory-system](https://github.com/yourusername/kiryana-inventory-system)
+Project Link: [https://github.com/hira-fatima/kiryana-inventory-system](https://github.com/hira-fatima/kiryana-inventory-system)
 
 ---
 
-Developed by Bazaar Technologies for the growing needs of kiryana stores.
+Developed by Hira Fatima for the growing needs of kiryana stores across Pakistan.
+
+© 2025 Hira Fatima - All Rights Reserved

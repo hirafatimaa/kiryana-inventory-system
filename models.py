@@ -1,3 +1,7 @@
+# Kiryana Inventory System
+# Developed by Hira Fatima
+# Database models for inventory tracking
+
 from datetime import datetime
 from app import db
 
