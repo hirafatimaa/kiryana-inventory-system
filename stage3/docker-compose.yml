@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api_gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3001
+      - INVENTORY_SERVICE_URL=http://inventory-service:3002
+      - STORE_SERVICE_URL=http://store-service:3003
+      - REPORTING_SERVICE_URL=http://reporting-service:3004
+    depends_on:
+      - auth-service
+      - product-service
+      - inventory-service
+      - store-service
+      - reporting-service
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - JWT_SECRET=your_jwt_secret_here
+      - MONGODB_URI=mongodb://mongo:27017/kiryana-auth
+    depends_on:
+      - mongo
+
+  # Product Service
+  product-service:
+    build:
+      context: ./services/product
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/kiryana-product
+      - AUTH_SERVICE_URL=http://auth-service:3001
+    depends_on:
+      - mongo
+      - auth-service
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ./services/inventory
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongo:27017/kiryana-inventory
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3001
+      - STORE_SERVICE_URL=http://store-service:3003
+    depends_on:
+      - mongo
+      - auth-service
+      - product-service
+      - store-service
+
+  # Store Service
+  store-service:
+    build:
+      context: ./services/store
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - MONGODB_URI=mongodb://mongo:27017/kiryana-store
+      - AUTH_SERVICE_URL=http://auth-service:3001
+    depends_on:
+      - mongo
+      - auth-service
+
+  # Reporting Service
+  reporting-service:
+    build:
+      context: ./services/reporting
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - MONGODB_URI=mongodb://mongo:27017/kiryana-reporting
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3001
+      - INVENTORY_SERVICE_URL=http://inventory-service:3002
+      - STORE_SERVICE_URL=http://store-service:3003
+      - REPORT_CACHE_MINUTES=15
+    depends_on:
+      - mongo
+      - auth-service
+      - product-service
+      - inventory-service
+      - store-service
+
+  # MongoDB
+  mongo:
+    image: mongo:5.0
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+volumes:
+  mongo-data:
