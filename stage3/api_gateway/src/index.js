@@ -1,7 +1,6 @@
 /**
- * API Gateway Main Entry Point
- * 
- * Central API Gateway for the Kiryana Inventory System microservices
+ * API Gateway Entry Point
+ * Kiryana Inventory System - Stage 3
  */
 
 const express = require('express');
@@ -10,106 +9,106 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const rateLimit = require('express-rate-limit');
 
 const config = require('./config');
-const logger = require('./utils/logger');
-const authMiddleware = require('./middleware/auth.middleware');
-const errorMiddleware = require('./middleware/error.middleware');
 
 // Create Express app
 const app = express();
 
-// Middleware
-app.use(helmet()); // Security headers
-app.use(compression()); // Compress responses
-app.use(express.json()); // Parse JSON requests
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded requests
-app.use(morgan('combined')); // HTTP request logging
+// Basic middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(helmet());
+app.use(compression());
+app.use(morgan('combined'));
 
-// CORS configuration
-app.use(cors({
-  origin: config.corsOrigins,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: config.rateLimit.windowMs,
+  max: config.rateLimit.max,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
 
-// Request logging middleware
-app.use(logger.requestLogger);
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'UP',
-    service: 'api-gateway',
-    timestamp: new Date().toISOString()
+// Welcome route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to Kiryana Inventory System API Gateway - Stage 3',
+    version: '3.0.0',
+    services: Object.keys(config.services)
   });
 });
 
-// Auth middleware for all routes
-app.use(authMiddleware.validateToken);
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'UP' });
+});
 
-// Service proxies
-// Auth Service
+// Auth Service Proxy
 app.use('/api/v1/auth', createProxyMiddleware({
-  target: config.services.auth.url,
-  pathRewrite: {
-    '^/api/v1/auth': '/'
-  },
+  target: config.services.auth,
   changeOrigin: true,
-  logLevel: 'debug'
+  pathRewrite: {
+    '^/api/v1/auth': ''
+  }
 }));
 
-// Product Service
+// Product Service Proxy
 app.use('/api/v1/products', createProxyMiddleware({
-  target: config.services.product.url,
-  pathRewrite: {
-    '^/api/v1/products': '/'
-  },
+  target: config.services.product,
   changeOrigin: true,
-  logLevel: 'debug'
+  pathRewrite: {
+    '^/api/v1/products': ''
+  }
 }));
 
-// Inventory Service
+// Inventory Service Proxy
 app.use('/api/v1/inventory', createProxyMiddleware({
-  target: config.services.inventory.url,
-  pathRewrite: {
-    '^/api/v1/inventory': '/'
-  },
+  target: config.services.inventory,
   changeOrigin: true,
-  logLevel: 'debug'
+  pathRewrite: {
+    '^/api/v1/inventory': ''
+  }
 }));
 
-// Store Service
+// Store Service Proxy
 app.use('/api/v1/stores', createProxyMiddleware({
-  target: config.services.store.url,
-  pathRewrite: {
-    '^/api/v1/stores': '/'
-  },
+  target: config.services.store,
   changeOrigin: true,
-  logLevel: 'debug'
+  pathRewrite: {
+    '^/api/v1/stores': ''
+  }
 }));
 
-// Report Service
+// Reporting Service Proxy
 app.use('/api/v1/reports', createProxyMiddleware({
-  target: config.services.report.url,
-  pathRewrite: {
-    '^/api/v1/reports': '/'
-  },
+  target: config.services.reporting,
   changeOrigin: true,
-  logLevel: 'debug'
+  pathRewrite: {
+    '^/api/v1/reports': ''
+  }
 }));
 
 // Error handling middleware
-app.use(errorMiddleware.notFound);
-app.use(errorMiddleware.errorHandler);
+app.use((err, req, res, next) => {
+  console.error('API Gateway Error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: err.message || 'Something went wrong'
+  });
+});
 
-// Start server
+// Start the server
 const PORT = config.port || 3000;
 app.listen(PORT, () => {
-  logger.info(`API Gateway running on port ${PORT} in ${config.env} mode`);
-  logger.info(`Service URLs:`);
-  Object.keys(config.services).forEach(service => {
-    logger.info(`- ${service}: ${config.services[service].url}`);
+  console.log(`🚀 API Gateway running on port ${PORT}`);
+  console.log(`Environment: ${config.nodeEnv}`);
+  console.log('Available services:');
+  Object.entries(config.services).forEach(([service, url]) => {
+    console.log(`- ${service}: ${url}`);
   });
 });
 
