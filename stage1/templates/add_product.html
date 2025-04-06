@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if edit %}Edit{% else %}Add{% endif %} Product{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h4>
+                    <i class="fas fa-{% if edit %}edit{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if edit %}Edit{% else %}Add New{% endif %} Product
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control", placeholder="Enter product name") }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.sku.label(class="form-label") }}
+                                {{ form.sku(class="form-control", placeholder="Enter SKU") }}
+                                {% if form.sku.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.sku.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=3, placeholder="Enter product description") }}
+                        {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.unit_price.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    {{ form.unit_price(class="form-control", placeholder="0.00") }}
+                                </div>
+                                {% if form.unit_price.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.unit_price.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.reorder_level.label(class="form-label") }}
+                                {{ form.reorder_level(class="form-control", placeholder="10") }}
+                                <small class="text-muted">When stock drops below this level, an alert will be shown</small>
+                                {% if form.reorder_level.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.reorder_level.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('products') }}" class="btn btn-secondary">Cancel</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

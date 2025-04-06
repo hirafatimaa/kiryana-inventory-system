@@ -62,7 +62,7 @@ This is the Stage 2 implementation of the Kiryana Inventory System, expanding fr
 
 ### Default Login
 - Username: admin
-- Password: admin123 (change immediately after first login)
+- Password: admin_secure_password (change immediately after first login)
 
 ## CLI Support
 

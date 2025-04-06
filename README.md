@@ -6,9 +6,66 @@ A scalable inventory tracking system for kiryana stores, leveraging microservice
 
 This project is organized into three stages of development:
 
-- **Stage 1**: Initial prototype (deprecated, moved to `stage1_backup/`)
+- **Stage 1**: Single Store (located in `stage1/`)
 - **Stage 2**: Multi-store flask application (located in `stage2/`)
 - **Stage 3**: Microservices architecture (located in `stage3/`)
+
+## Technical Architecture
+
+### Stage 1: Single Store
+
+- **Frontend**: HTML/CSS/JS with Flask templates
+- **Backend**: Python Flask application
+- **Database**: SQLite for local storage
+- **Features**: Basic CRUD operations for inventory management
+![Stage 1](assets/stage1_dashboard.png)
+![Stage 1](assets/stage1_report.png)
+![Stage 1](assets/stage1_products.png)
+![Stage 1](assets/stage1_addnewproduct.png)
+![Stage 1](assets/stage1_inventory.png)
+
+### Stage 2: Multi-Store
+
+- **Frontend**: Enhanced UI with Bootstrap
+- **Backend**: Flask with Blueprint-based modules
+- **Database**: PostgreSQL
+- **Security**: Flask-Login for authentication
+- **API**: RESTful API endpoints
+
+![Stage 2](assets/stage2_login.png)
+![Stage 2](assets/stage2_managestore.png)
+![Stage 2](assets/stage2_addnewstore.png)
+
+### Stage 3: Enterprise
+
+- **Architecture**: Microservices pattern
+- **Services**:
+  - Authentication Service
+  - Product Service
+  - Inventory Service
+  - Store Service
+  - Reporting Service
+- **Infrastructure**: API Gateway, Message Queue
+- **Deployment**: Containerized services for horizontal scaling
+
+### Installation
+
+1. Clone the repository
+2. Navigate to the desired stage directory:
+   ```bash
+   cd stage1  # For single store solution
+   python init_db.py
+
+   # OR
+   cd stage2  # For multi-store solution
+   ```
+3. Set up environment variables:
+   ```
+   DATABASE_URL=postgresql://user:password@localhost/kiryana_inventory
+   ```
+4. Run the application:
+   ```bash
+   python main.py
 
 ## Running the Application
 
@@ -51,7 +108,7 @@ This will start the Flask application on http://localhost:5000.
 Default admin credentials:
 - Username: admin
 - Email: admin@example.com
-- Password: admin_password
+- Password: admin_secure_password
 
 ### Stage 3 (Microservices Architecture)
 
@@ -75,6 +132,25 @@ API Gateway will be available at http://localhost:3000.
 
 For more detailed instructions, refer to [Stage 3 README](stage3/README_HOW_TO_RUN.md).
 
+## Getting Started
+
+### Prerequisites
+
+- Python 3.x
+- PostgreSQL database (for Stage 2 and 3)
+- Required Python packages:
+  - flask
+  - flask-login
+  - flask-sqlalchemy
+  - flask-wtf
+  - gunicorn
+  - psycopg2-binary
+  - sqlalchemy
+  - tabulate
+  - werkzeug
+  - wtforms
+  - email-validator
+
 ## Core Technologies
 
 - Python-based multi-store application (Stage 2)
@@ -95,5 +171,31 @@ The system includes a Command Line Interface for inventory management:
 # From Stage 2 directory
 python cli.py --help
 ```
+See [CLI README](stage1/README_CLI.md) for detailed CLI usage.
 
-See [CLI README](stage2/README_CLI.md) for detailed CLI usage.
+![Stage 1](assets/stage1_cli.png)
+![Stage 1](assets/stage1_cli2.png)
+
+## Contributing
+
+Contributions to improve the Kiryana Inventory System are welcome. Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## Contact
+
+Project Link: [https://github.com/hira-fatimaa/kiryana-inventory-system](https://github.com/hira-fatimaa/kiryana-inventory-system)
+
+---
+
+Developed by Hira Fatima for the growing needs of kiryana stores across Pakistan.
+
+© 2025 Hira Fatima - All Rights Reserved

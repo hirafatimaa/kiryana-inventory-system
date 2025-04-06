@@ -1,0 +1,2 @@
+{"level":"info","message":"Auth Service running on port 3001 in development mode","service":"auth-service","timestamp":"2025-04-05 18:49:43"}
+{"level":"info","message":"API base path: /api/v1/auth","service":"auth-service","timestamp":"2025-04-05 18:49:43"}
